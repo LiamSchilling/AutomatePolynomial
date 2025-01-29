@@ -1,59 +1,9 @@
-import Mathlib.Algebra.Polynomial.Degree.Lemmas
-
-namespace WithBot
-
--- reflexivity of ≤ over WithBot
-theorem le_self [LE α] (h1 : ∀ b : α, b ≤ b) {a : WithBot α} : a ≤ a :=
-  fun b h2 => Exists.intro b (And.intro h2 (h1 b))
-
-end WithBot
-
-section Class
-
--- similar to NoZeroDivisors, asserts that no members have additive inverses
-class NoAdditiveInverses (α : Type*) [Add α] [Zero α] where
-  eq_zero_and_eq_zero_of_add_eq_zero : ∀ {a b : α}, a + b = 0 → a = 0 ∧ b = 0
-
--- no nontrivial natural numbers have additive inverses
-instance : NoAdditiveInverses ℕ where
-  eq_zero_and_eq_zero_of_add_eq_zero := Nat.eq_zero_of_add_eq_zero
-
-end Class
+import AutomatePolynomial.Polynomial
+import AutomatePolynomial.WithBot
 
 namespace Polynomial
 
 variable {R : Type*} [Semiring R]
-
--- degree of polynomial sums is maximum of polynomial degrees
-variable [NoAdditiveInverses R] {n m : ℕ} {p q : R[X]} in
-lemma degree_add_eq_of_eq (hp : degree p = n) (hq : degree q = m) :
-    degree (p + q) = max n m := by
-  apply degree_eq_of_le_of_coeff_ne_zero
-  . apply (Polynomial.degree_le_iff_coeff_zero _ _).mpr
-    intro N h
-    rw[coeff_add]
-    have ⟨hn, hm⟩ := Nat.max_lt.mp (WithBot.coe_lt_coe.mp h)
-    rw[coeff_eq_zero_of_degree_lt (by rw[hp]; exact WithBot.coe_lt_coe.mpr hn)]
-    rw[coeff_eq_zero_of_degree_lt (by rw[hq]; exact WithBot.coe_lt_coe.mpr hm)]
-    simp
-  . rw[coeff_add]
-    cases max_choice n m <;> (rename_i h; rw[h]; intro h)
-    . absurd coeff_ne_zero_of_eq_degree hp
-      exact (NoAdditiveInverses.eq_zero_and_eq_zero_of_add_eq_zero h).left
-    . absurd coeff_ne_zero_of_eq_degree hq
-      exact (NoAdditiveInverses.eq_zero_and_eq_zero_of_add_eq_zero h).right
-
--- degree of polynomial sums is maximum of polynomial degrees
-variable [NoAdditiveInverses R] {p q : R[X]} in
-lemma degree_add :
-    degree (p + q) = max (degree p) (degree q) :=
-  match hp : degree p with
-  | ⊥ => by simp [degree_eq_bot.mp hp]
-  | some n =>
-  match hq : degree q with
-  | ⊥ => by simp [degree_eq_bot.mp hq, hp]
-  | some m => degree_add_eq_of_eq hp hq
-
 variable [Nontrivial R]
 variable [NoZeroDivisors R] [NoAdditiveInverses R]
 variable [DecidablePred (Eq 0 : R → Prop)]
