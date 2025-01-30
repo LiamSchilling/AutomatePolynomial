@@ -1,4 +1,3 @@
-import AutomatePolynomial.Coeff
-import AutomatePolynomial.Degree
+import AutomatePolynomial.Lemmas
 
 def hello := "world"
