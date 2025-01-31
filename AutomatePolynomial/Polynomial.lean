@@ -5,14 +5,13 @@ namespace Polynomial
 
 variable {R : Type*} [Semiring R]
 variable {n m : ℕ} {p q : R[X]}
-variable {D : WithBot ℕ}
 
 -- degree of polynomial sums is maximum of polynomial degrees
 variable [NoAdditiveInverses R] in
 lemma degree_add_eq_of_eq (hp : degree p = n) (hq : degree q = m) :
     degree (p + q) = max n m := by
   apply degree_eq_of_le_of_coeff_ne_zero
-  . apply (Polynomial.degree_le_iff_coeff_zero _ _).mpr
+  . apply (degree_le_iff_coeff_zero _ _).mpr
     intro N h
     rw[coeff_add]
     have ⟨hn, hm⟩ := Nat.max_lt.mp (WithBot.coe_lt_coe.mp h)
@@ -39,8 +38,42 @@ lemma degree_add :
 
 -- get degree of polynomial by searching coefficients
 variable [DecidablePred (fun n => 0 = coeff p n)] in
-def find_degree (h : degree p ≤ D) : { D' // degree p = D' } :=
-  have _ : DecidablePred (fun n => 0 = coeff p n) := inferInstance
-  sorry
+def find_degree (D : WithBot ℕ) (h1 : degree p ≤ D) :
+    { D' // degree p = D' } :=
+  match D with
+  | ⊥ =>
+    ⟨⊥, le_bot_iff.mp h1⟩
+  | some D =>
+  match inferInstanceAs (Decidable (0 = coeff p D)) with
+  | isFalse h2 =>
+    ⟨some D, degree_eq_of_le_of_coeff_ne_zero h1 (fun hn => h2 hn.symm)⟩
+  | isTrue h2 =>
+  match D with
+  | 0 =>
+    have h5 : p.degree ≤ ⊥ := by
+      apply (degree_le_iff_coeff_zero _ _).mpr
+      intro N h3
+      match N with
+      | 0 => exact h2.symm
+      | N + 1 =>
+        rw[(degree_le_iff_coeff_zero _ _).mp h1]
+        exact compare_gt_iff_gt.mp rfl
+    find_degree ⊥ h5
+  | D + 1 =>
+    have h5 : p.degree ≤ some D := by
+      apply (degree_le_iff_coeff_zero _ _).mpr
+      intro N h3
+      match inferInstanceAs (Decidable (some D.succ = N)) with
+      | isFalse h4 =>
+        rw[(degree_le_iff_coeff_zero _ _).mp h1]
+        apply WithBot.coe_lt_coe.mpr
+        apply lt_of_le_of_ne
+        . exact WithBot.coe_lt_coe.mp h3
+        . intro hn; rw[Nat.succ_eq_add_one, hn] at h4; contradiction
+      | isTrue h4 =>
+        rw[←WithBot.coe_inj.mp h4]
+        exact h2.symm
+    find_degree (some D) h5
+termination_by match D with | ⊥ => 0 | some D => D.succ
 
 end Polynomial

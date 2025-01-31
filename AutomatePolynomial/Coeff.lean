@@ -11,6 +11,10 @@ class Coeffs (p : R[X]) where
   C : ℕ → R
   isEq : p.coeff = C
 
+-- apply equality proof to coefficient at specific degree
+lemma Coeffs.isEqAt {p : R[X]} [Coeffs p] : p.coeff n = (Coeffs.C p) n :=
+  Coeffs.isEq.rec rfl
+
 section Coeffs
 
 variable [Coeffs p] [Coeffs q]
@@ -18,7 +22,7 @@ variable [Coeffs p] [Coeffs q]
 -- the zero polynomial has coefficients 0
 instance instCoeffsZero : Coeffs (0 : R[X]) where
   C := 0
-  isEq := coeff_zero n
+  isEq := funext coeff_zero
 
 -- the one polynomial has coefficient 1 at degree 0
 instance instCoeffsOne : Coeffs (1 : R[X]) where
