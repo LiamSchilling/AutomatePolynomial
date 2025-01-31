@@ -30,10 +30,10 @@ Type classes achieving this contain two essential components:
 
 In order for the inferred instance's proof
 to resolve a proposition,
-the inference rules (typeclass instances) must define the specifier value
-in such a way that it can be sufficiently reduced
-to match the representation used in the proposition.
+the inference rules (type class instances) must define the specifier value
+in such a way that it sufficiently reduces
+to match its representation in the proposition.
 For representations which lead to useful results,
-this often requires stronger assumptions about `R`,
+this may require stronger assumptions about `R`,
 which can themselves be resolved by type class instances
 from the rule's arguments.

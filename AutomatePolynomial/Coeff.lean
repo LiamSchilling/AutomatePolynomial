@@ -26,23 +26,23 @@ instance instCoeffsZero : Coeffs (0 : R[X]) where
 
 -- the one polynomial has coefficient 1 at degree 0
 instance instCoeffsOne : Coeffs (1 : R[X]) where
-  C := fun n => match n with | 0 => 1 | _ => 0
-  isEq := sorry
+  C n := if n = 0 then 1 else 0
+  isEq := funext (fun _ => coeff_one)
 
 -- the constant c polynomial has coefficient c at degree 0
 instance instCoeffsC : Coeffs (C c : R[X]) where
-  C := fun n => match n with | 0 => c | _ => 0
-  isEq := sorry
+  C n := if n = 0 then c else 0
+  isEq := funext (fun _ => coeff_C)
 
 -- the identity polynomial has coefficient 1 at degree 1
 instance instCoeffsX : Coeffs (X : R[X]) where
-  C := fun n => match n with | 1 => 1 | _ => 0
-  isEq := sorry
+  C n := if 1 = n then 1 else 0
+  isEq := funext (fun _ => coeff_X)
 
 -- compute coefficients of the power of a polynomial
 -- given the coefficients of the polynomial
 instance instCoeffsPow : Coeffs (p ^ n) where
-  C := sorry
+  C n := sorry
   isEq := sorry
 
 -- compute coefficients of the sum of polynomials
@@ -54,7 +54,7 @@ instance instCoeffsAdd : Coeffs (p + q) where
 -- compute coefficients of the product of polynomials
 -- given the coefficients of the polynomials
 instance instCoeffsMul : Coeffs (p * q) where
-  C := sorry
+  C n := Fin.foldl n.succ (fun c i => c + (Coeffs.C p i * Coeffs.C q i.rev)) 0
   isEq := sorry
 
 end Coeffs
