@@ -15,7 +15,7 @@ def degreeEq_of_coeffs [DegreeLe p] [Coeffs p] : DegreeEq p :=
 
 end Polynomial
 
--- PROBLEM
+-- PROBLEM (test commit :] )
 open Polynomial
 #reduce DegreeLe.D (1 : Int[X]) -- reduces to 0 as expected
 #reduce Coeffs.C (1 : Int[X]) 0 -- reduces to 1 as expected
