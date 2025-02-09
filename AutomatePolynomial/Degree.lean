@@ -19,6 +19,30 @@ class DegreeLe (p : R[X]) where
   D : WithBot ℕ
   isLe : p.degree ≤ D
 
+-- degree of p is definitely equal to degree of q
+def degreeEq [DegreeEq p] [DegreeEq q] :=
+  DegreeEq.D p = DegreeEq.D q
+
+-- degree of p is definitely less than degree of q
+def degreeLt [DegreeLe p] [DegreeEq q] :=
+  DegreeLe.D p < DegreeEq.D q
+
+-- useful meaning of the computable degree equality
+omit [Nontrivial R] in
+omit [NoZeroDivisors R] [NoAdditiveInverses R] in
+omit [DecidablePred (Eq 0 : R → Prop)] in
+variable {p q : R[X]} [DegreeEq p] [DegreeEq q] in
+lemma apply_degreeEq (h : degreeEq p q) : p.degree = q.degree := by
+  rw[DegreeEq.isEq, DegreeEq.isEq]; exact h
+
+-- useful meaning of the computable degree comparison
+omit [Nontrivial R] in
+omit [NoZeroDivisors R] [NoAdditiveInverses R] in
+omit [DecidablePred (Eq 0 : R → Prop)] in
+variable {p q : R[X]} [DegreeLe p] [DegreeEq q] in
+lemma apply_degreeLt (h : degreeLt p q) : p.degree < q.degree := by
+  apply lt_of_le_of_lt (DegreeLe.isLe); rw[DegreeEq.isEq]; exact h
+
 -- exact degree implies upper bound on degree
 instance instDegreeLeOfDegreeEq [DegreeEq p] : DegreeLe p where
   D := DegreeEq.D p
@@ -67,19 +91,19 @@ instance instDegreeEqPow : DegreeEq (p ^ n) where
   D := n • DegreeEq.D p
   isEq := DegreeEq.isEq.rec (degree_pow p n)
 
--- compute degree of the sum of polynomials
--- given the degree of the polynomials
--- given NoAdditiveInverses
-instance instDegreeEqAdd : DegreeEq (p + q) where
-  D := max (DegreeEq.D p) (DegreeEq.D q)
-  isEq := DegreeEq.isEq.rec (DegreeEq.isEq.rec degree_add)
-
 -- compute degree of the product of polynomials
 -- given the degree of the polynomials
 -- given NoZeroDivisors
 instance instDegreeEqMul : DegreeEq (p * q) where
   D := DegreeEq.D p + DegreeEq.D q
   isEq := DegreeEq.isEq.rec (DegreeEq.isEq.rec degree_mul)
+
+-- compute degree of the sum of polynomials
+-- given the degree of the polynomials
+-- given NoAdditiveInverses
+instance instDegreeEqAdd : DegreeEq (p + q) where
+  D := max (DegreeEq.D p) (DegreeEq.D q)
+  isEq := DegreeEq.isEq.rec (DegreeEq.isEq.rec degree_add)
 
 end DegreeEq
 
@@ -116,17 +140,17 @@ instance instDegreeLePow : DegreeLe (p ^ n) where
   D := n * DegreeLe.D p
   isLe := degree_pow_le_of_le n DegreeLe.isLe
 
--- compute upper bound of the sum of polynomials
--- given the upper bound of the polynomials
-instance instDegreeLeAdd : DegreeLe (p + q) where
-  D := max (DegreeLe.D p) (DegreeLe.D q)
-  isLe := degree_add_le_of_le DegreeLe.isLe DegreeLe.isLe
-
 -- compute upper bound of the product of polynomials
 -- given the upper bound of the polynomials
 instance instDegreeLeMul : DegreeLe (p * q) where
   D := DegreeLe.D p + DegreeLe.D q
   isLe := degree_mul_le_of_le DegreeLe.isLe DegreeLe.isLe
+
+-- compute upper bound of the sum of polynomials
+-- given the upper bound of the polynomials
+instance instDegreeLeAdd : DegreeLe (p + q) where
+  D := max (DegreeLe.D p) (DegreeLe.D q)
+  isLe := degree_add_le_of_le DegreeLe.isLe DegreeLe.isLe
 
 end DegreeLe
 
