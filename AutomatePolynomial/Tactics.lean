@@ -35,7 +35,7 @@ def applyNoInst (goal : MVarId) (e : Expr) : MetaM (List MVarId) := do
 
 -- recursively synthesize type class instances,
 -- admitting those matching pattern and setting them as new goals
-def synthInstanceSupposing (goal : MVarId) (pattern : Expr) (d : Nat := 8) :
+def synthInstanceSupposing (goal : MVarId) (patterns : List Expr) (d : Nat := 8) :
     MetaM (List MVarId) := do
   match d with
   | 0 => throwError "maximum recursion depth reached"
@@ -45,7 +45,7 @@ def synthInstanceSupposing (goal : MVarId) (pattern : Expr) (d : Nat := 8) :
     goal.assign (← synthInstance target)
     return []
   catch _ =>
-    if ← isDefEq target pattern then
+    if ← patterns.anyM (fun p => isDefEq target p) then
       return [goal]
     else
       for inst in ← SynthInstance.getInstances target do
@@ -53,7 +53,7 @@ def synthInstanceSupposing (goal : MVarId) (pattern : Expr) (d : Nat := 8) :
         try
           let subgoals ← goal.applyNoInst inst.val
           let subgoals ← subgoals.mapM (
-            fun subgoal => subgoal.synthInstanceSupposing pattern d )
+            fun subgoal => subgoal.synthInstanceSupposing patterns d )
           return subgoals.flatten
         catch _ =>
           restoreState state
@@ -65,5 +65,8 @@ end Lean
 
 -- recursively synthesize type class instances,
 -- admitting those matching pattern and setting them as new goals
-elab "infer_instance_supposing" p:term : tactic => do
-  setGoals (← (← getMainGoal).synthInstanceSupposing (← elabTerm p none))
+elab "infer_instance_supposing" "[" ts:term,* "]" : tactic => do
+  let ts := ts.getElems
+  let mut ps := []
+  for t in ts do ps := (← elabTerm t none) :: ps
+  setGoals (← (← getMainGoal).synthInstanceSupposing ps)

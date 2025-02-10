@@ -82,40 +82,65 @@ variable [DegreeEq p] in
 variable [LeadingCoeff p] [NeZero (leadingCoeffPow n p)] in
 instance instDegreeEqPowOfLeadingCoeff : DegreeEq (p ^ n) where
   D := DegreeEq.D p * n
-  isEq := sorry
+  isEq :=
+    have _ := LeadingCoeff.c p
+    have _ := NeZero.ne (leadingCoeffPow n p)
+    sorry
 
 -- compute degree of product given leading coefficient does not become zero
 variable [DegreeEq p] [DegreeEq q] in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
 instance instDegreeEqMulOfLeadingCoeff : DegreeEq (p * q) where
   D := DegreeEq.D p + DegreeEq.D q
-  isEq := sorry
+  isEq :=
+    have _ := LeadingCoeff.c p
+    have _ := LeadingCoeff.c q
+    have _ := NeZero.ne (leadingCoeffMul p q)
+    sorry
 
 -- compute degree of sum where left side has greater degree
-variable [DegreeEq p] [DegreeLe q] (_ : degreeLt q p) in
+variable [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
 instance instDegreeEqAddLeft : DegreeEq (p + q) where
   D := DegreeEq.D p
-  isEq := sorry
+  isEq :=
+    have _ := DegreeLe.D q
+    have _ := h
+    sorry
 
 -- compute degree of sum where right side has greater degree
-variable [DegreeLe p] [DegreeEq q] (_ : degreeLt p q) in
+variable [DegreeLe p] [DegreeEq q] (h : degreeLt p q) in
 instance instDegreeEqAddRight : DegreeEq (p + q) where
   D := DegreeEq.D q
-  isEq := sorry
+  isEq :=
+    have _ := DegreeLe.D p
+    have _ := h
+    sorry
 
 -- compute degree of sum where sides have same degree
-variable [DegreeEq p] [DegreeEq q] (_ : degreeEq p q) in
+variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 instance instDegreeEqAddLeftBalancedOfLeadingCoeff : DegreeEq (p + q) where
   D := DegreeEq.D p
-  isEq := sorry
+  isEq :=
+    have _ := DegreeEq.D q
+    have _ := h
+    have _ := LeadingCoeff.c p
+    have _ := LeadingCoeff.c q
+    have _ := NeZero.ne (leadingCoeffAdd p q)
+    sorry
 
 -- compute degree of sum where sides have same degree
-variable [DegreeEq p] [DegreeEq q] (_ : degreeEq p q) in
+variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 instance instDegreeEqAddRightBalancedOfLeadingCoeff : DegreeEq (p + q) where
   D := DegreeEq.D q
-  isEq := sorry
+  isEq :=
+    have _ := DegreeEq.D p
+    have _ := h
+    have _ := LeadingCoeff.c p
+    have _ := LeadingCoeff.c q
+    have _ := NeZero.ne (leadingCoeffAdd p q)
+    sorry
 
 end DegreeEq
 
