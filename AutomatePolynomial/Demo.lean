@@ -41,12 +41,28 @@ example : (C 1 : R[X]).leadingCoeff = 1 := LeadingCoeff.isEq
 example : (C 2 : R[X]).leadingCoeff = 2 := LeadingCoeff.isEq
 example : (X : R[X]).leadingCoeff = 1   := LeadingCoeff.isEq
 
---closure cases
-
+-- closure cases
 example [NoZeroDivisors R] : (X ^ 2 : R[X]).leadingCoeff = 1 ^ 2 := LeadingCoeff.isEq
 example [NoZeroDivisors R] : (X * X : R[X]).leadingCoeff = 1 * 1 := LeadingCoeff.isEq
 
--- TODO
+-- user assisted cases
+
+example [Nontrivial R] : (X + 1 : R[X]).leadingCoeff = 1 :=
+  let _ : LeadingCoeff (X + 1 : R[X]) := by
+    infer_instance_supposing (degreeLt (1 : R[X]) (X : R[X]))
+    . sorry
+  LeadingCoeff.isEq
+
+example [Nontrivial R] : (1 + X : R[X]).leadingCoeff = 1 :=
+  let _ : LeadingCoeff (1 + X : R[X]) := by
+    infer_instance_supposing (degreeLt (1 : R[X]) (X : R[X]))
+    . sorry
+  LeadingCoeff.isEq
+
+example [Nontrivial R] : (X + X : R[X]).leadingCoeff = 1 + 1 :=
+  let _ : LeadingCoeff (X + X : R[X]) := by
+    sorry
+  sorry
 
 end LeadingCoeff
 
@@ -61,8 +77,38 @@ example [NeZero (2 : R)] : (C 2 : R[X]).degree = 0 := DegreeEq.isEq
 example [Nontrivial R]   : (X : R[X]).degree = 1   := DegreeEq.isEq
 
 -- closure cases
+example [Nontrivial R] [NoZeroDivisors R]     : (X ^ 2 : R[X]).degree = 2 := DegreeEq.isEq
+example [Nontrivial R] [NoZeroDivisors R]     : (X * X : R[X]).degree = 2 := DegreeEq.isEq
+example [Nontrivial R] [NoAdditiveInverses R] : (X + 1 : R[X]).degree = 1 := sorry --DegreeEq.isEq
+example [Nontrivial R] [NoAdditiveInverses R] : (1 + X : R[X]).degree = 1 := DegreeEq.isEq
+example [Nontrivial R] [NoAdditiveInverses R] : (X + X : R[X]).degree = 1 := DegreeEq.isEq
 
--- TODO
+-- user assisted cases
+
+example [Nontrivial R] : (X ^ 2 : R[X]).degree = 2 :=
+  let _ : DegreeEq (X ^ 2 : R[X]) := by
+    sorry
+  sorry
+
+example [Nontrivial R] : (X * X : R[X]).degree = 2 :=
+  let _ : DegreeEq (X * X : R[X]) := by
+    sorry
+  sorry
+
+example [Nontrivial R] : (X + 1 : R[X]).degree = 1 :=
+  let _ : DegreeEq (X + 1 : R[X]) := by
+    sorry
+  sorry
+
+example [Nontrivial R] : (1 + X : R[X]).degree = 1 :=
+  let _ : DegreeEq (1 + X : R[X]) := by
+    sorry
+  sorry
+
+example [Nontrivial R] : (X + X : R[X]).degree = 1 :=
+  let _ : DegreeEq (X + X : R[X]) := by
+    sorry
+  sorry
 
 end DegreeEq
 
@@ -102,12 +148,12 @@ example : (X : R[X]).eval 0 = 0   := Eval.isEqAt 0
 example : (X : R[X]).eval 1 = 1   := Eval.isEqAt 1
 
 -- closure cases
-example : (X + 1 : R[X]).coeff 0 = 0 + 1 := sorry --Eval.isEqAt 0
-example : (X + 1 : R[X]).coeff 1 = 1 + 1 := sorry --Eval.isEqAt 1
-example : (1 + X : R[X]).coeff 0 = 1 + 0 := sorry --Eval.isEqAt 0
-example : (1 + X : R[X]).coeff 1 = 1 + 1 := sorry --Eval.isEqAt 1
-example : (X + X : R[X]).coeff 0 = 0 + 0 := sorry --Eval.isEqAt 0
-example : (X + X : R[X]).coeff 1 = 1 + 1 := sorry --Eval.isEqAt 1
+example : (X + 1 : R[X]).eval 0 = 0 + 1 := Eval.isEqAt 0
+example : (X + 1 : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
+example : (1 + X : R[X]).eval 0 = 1 + 0 := Eval.isEqAt 0
+example : (1 + X : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
+example : (X + X : R[X]).eval 0 = 0 + 0 := Eval.isEqAt 0
+example : (X + X : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
 
 end Eval
 
@@ -115,15 +161,15 @@ section OfCoeffs
 
 -- searches
 
-example : (X + C 8 : Int[X]).degree = 1 :=
-  let _ : Coeffs (X + C 8 : Int[X]) := inferInstance
-  let _ : DegreeEq (X + C 8 : Int[X]) := degreeEq_of_coeffs (X + C 8 : Int[X])
+example : (X + 1 : Int[X]).degree = 1 :=
+  let _ : Coeffs (X + 1 : Int[X]) := inferInstance
+  let _ : DegreeEq (X + 1 : Int[X]) := degreeEq_of_coeffs (X + 1 : Int[X])
   sorry
 
-example : (X + C 8 : Int[X]).leadingCoeff = 1 :=
-  let _ : Coeffs (X + C 8 : Int[X]) := inferInstance
-  let _ : DegreeEq (X + C 8 : Int[X]) := degreeEq_of_coeffs (X + C 8 : Int[X])
-  let _ : LeadingCoeff (X + C 8 : Int[X]) := leadingCoeff_of_coeffs (X + C 8 : Int[X])
+example : (X + 1 : Int[X]).leadingCoeff = 1 :=
+  let _ : Coeffs (X + 1 : Int[X]) := inferInstance
+  let _ : DegreeEq (X + 1 : Int[X]) := degreeEq_of_coeffs (X + 1 : Int[X])
+  let _ : LeadingCoeff (X + 1 : Int[X]) := leadingCoeff_of_coeffs (X + 1 : Int[X])
   sorry
 
 end OfCoeffs

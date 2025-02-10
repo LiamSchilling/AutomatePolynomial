@@ -12,6 +12,12 @@ class Coeffs (p : R[X]) where
   C : ℕ → R
   isEq : p.coeff = C
 
+-- compute polynomial coefficients
+class CoeffList (p : R[X]) where
+  C : List R
+  degree_lt : p.natDegree < C.length
+  coeff_eq : ∀ i, p.coeff i.val = C.get i
+
 -- compute polynomial leading coefficient
 class LeadingCoeff (p : R[X]) where
   c : R
@@ -65,6 +71,22 @@ instance instCoeffsAdd : Coeffs (p + q) where
   isEq := Coeffs.isEq.rec (Coeffs.isEq.rec (funext (coeff_add p q)))
 
 end Coeffs
+
+section CoeffList
+
+variable [CoeffList p] [CoeffList q]
+
+instance instCoeffListPow : CoeffList (p ^ n) where
+  C := coeff_list_pow n (CoeffList.C p)
+  degree_lt := sorry
+  coeff_eq := sorry
+
+instance instCoeffListMul : CoeffList (p * q) where
+  C := coeff_list_mul (CoeffList.C p) (CoeffList.C q)
+  degree_lt := sorry
+  coeff_eq := sorry
+
+end CoeffList
 
 section LeadingCoeff
 

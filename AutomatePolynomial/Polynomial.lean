@@ -76,4 +76,25 @@ def find_degree (D : WithBot ℕ) (h1 : degree p ≤ D) :
     find_degree (some D) h5
 termination_by match D with | ⊥ => 0 | some D => D.succ
 
+partial def coeff_list_mul_rec (ret : Bool) (C1L C1R C2L C2R accL accR : List R) : List R :=
+  match ret, C1L, C1R, C2L, C2R, accL, accR with
+  | false, c1 :: C1L,       [] ,       C2L,       C2R,      accL,      accR => coeff_list_mul_rec false C1L [c1] C2L C2R accL accR
+  | false,       C1L, c1 :: C1R, c2 :: C2L,       C2R,      []  ,      accR => coeff_list_mul_rec false C1L (c1 :: C1R) C2L (c2 :: C2R) accL ((c1 * c2) :: accR)
+  | false,       C1L, c1 :: C1R, c2 :: C2L,       C2R, c :: accL,      accR => coeff_list_mul_rec false C1L (c1 :: C1R) C2L (c2 :: C2R) accL ((c + c1 * c2) :: accR)
+  | false, c1 :: C1L,       C1R,       C2L,       C2R,      accL,      accR => coeff_list_mul_rec true C1L (c1 :: C1R) C2L C2R accL accR
+  | true ,       C1L,       C1R,       C2L, c2 :: C2R,      accL, c :: accR => coeff_list_mul_rec true C1L C1R (c2 :: C2L) C2R (c :: accL) accR
+  | true ,       C1L,       C1R,       C2L,       [] , c :: accL,      accR => coeff_list_mul_rec false C1L C1R C2L [] accL (c :: accR)
+  | _    ,       _  ,       _  ,       _  ,       _  ,      accL,      accR => accR.reverse ++ accL
+
+def coeff_list_mul (C1 C2 : List R) : List R :=
+  coeff_list_mul_rec false C1 [] C2 [] [] []
+
+def coeff_list_pow_rec (n : Nat) (C acc : List R) : List R :=
+  match n with
+  | 0 => acc
+  | n + 1 => coeff_list_pow_rec n C (coeff_list_mul acc C)
+
+def coeff_list_pow (n : Nat) (C : List R) : List R :=
+  coeff_list_pow_rec n C [1]
+
 end Polynomial
