@@ -97,4 +97,16 @@ def coeff_list_pow_rec (n : Nat) (C acc : List R) : List R :=
 def coeff_list_pow (n : Nat) (C : List R) : List R :=
   coeff_list_pow_rec n C [1]
 
+-- given coefficients [cn, ... c1, c0]
+-- computes abstract polynomial (c0 + c1*x + ... cn*x^n)
+noncomputable def expand_rec (cs : List R) (n : Nat) (h : cs.length = n) : R[X] :=
+  match cs with
+  | [] => 0
+  | c :: cs => expand_rec cs n.pred (Nat.pred_eq_of_eq_succ h.symm).symm + C c * X ^ n
+
+-- given coefficients [c0, c1, ... cn]
+-- computes abstract polynomial (c0 + c1*x + ... cn*x^n)
+noncomputable def expand (cs : List R) : R[X] :=
+  expand_rec cs.reverse cs.length cs.length_reverse
+
 end Polynomial
