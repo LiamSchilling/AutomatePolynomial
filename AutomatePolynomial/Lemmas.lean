@@ -7,37 +7,20 @@ namespace Polynomial
 variable {R : Type*} [Semiring R]
 variable (n : ℕ) (p q : R[X])
 
-section CoeffList
-
-variable [DegreeLe p] [Coeffs p] in
-instance coeffList_of_coeffs : CoeffList p where
-  C := (List.range ((DegreeLe.D p).unbot' 0).succ).map (Coeffs.C p)
-  degree_lt := sorry
-  coeff_eq := sorry
-
-variable [CoeffList p] in
-instance degreeLe_of_coeffList : DegreeLe p where
-  D := (CoeffList.C p).length.pred
-  isLe := sorry
-
-variable [CoeffList p] in
-instance coeffs_of_coeffList : Coeffs p where
-  C x := ((CoeffList.C p).get? x).getD 0
-  isEq := sorry
-
-end CoeffList
-
 section LeadingCoeff
 
+/-
 -- retrieve leading coefficient knowing degree and all coefficients
 variable [DegreeEq p] [Coeffs p] in
 def leadingCoeff_of_coeffs : LeadingCoeff p :=
   ⟨ Coeffs.C p ((DegreeEq.D p).unbot' 0),
     DegreeEq.isEq.rec (Coeffs.isEq.rec rfl) ⟩
+-/
 
 -- compute leading coefficient of sum where left side has greater degree
 variable [LeadingCoeff p] in
 variable [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
+@[simp]
 instance instLeadingCoeffAddLeftOfDegree : LeadingCoeff (p + q) where
   c := LeadingCoeff.c p
   isEq :=
@@ -47,6 +30,7 @@ instance instLeadingCoeffAddLeftOfDegree : LeadingCoeff (p + q) where
 -- compute leading coefficient of sum where right side has greater degree
 variable [LeadingCoeff q] in
 variable [DegreeLe p] [DegreeEq q] (h : degreeLt p q) in
+@[simp]
 instance instLeadingCoeffAddRightOfDegree : LeadingCoeff (p + q) where
   c := LeadingCoeff.c q
   isEq :=
@@ -56,6 +40,7 @@ instance instLeadingCoeffAddRightOfDegree : LeadingCoeff (p + q) where
 -- compute leading coefficient of sum where sides have same degree
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
+@[simp]
 instance instLeadingCoeffAddBalancedOfDegree : LeadingCoeff (p + q) where
   c := LeadingCoeff.c p + LeadingCoeff.c q
   isEq :=
@@ -68,6 +53,7 @@ end LeadingCoeff
 
 section DegreeEq
 
+/-
 -- search for degree knowing an upper bound and all coefficients
 variable [DegreeLe p] [Coeffs p] in
 variable [DecidablePred (Eq 0 : R → Prop)] in
@@ -76,10 +62,12 @@ def degreeEq_of_coeffs : DegreeEq p :=
     rw[Coeffs.isEq]; infer_instance
   let ⟨D, h⟩ := find_degree (DegreeLe.D p) DegreeLe.isLe
   ⟨D, h⟩
+-/
 
 -- compute degree of power given leading coefficient does not become zero
 variable [DegreeEq p] in
 variable [LeadingCoeff p] [NeZero (leadingCoeffPow n p)] in
+@[simp]
 instance instDegreeEqPowOfLeadingCoeff : DegreeEq (p ^ n) where
   D := DegreeEq.D p * n
   isEq :=
@@ -90,6 +78,7 @@ instance instDegreeEqPowOfLeadingCoeff : DegreeEq (p ^ n) where
 -- compute degree of product given leading coefficient does not become zero
 variable [DegreeEq p] [DegreeEq q] in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
+@[simp]
 instance instDegreeEqMulOfLeadingCoeff : DegreeEq (p * q) where
   D := DegreeEq.D p + DegreeEq.D q
   isEq :=
@@ -100,6 +89,7 @@ instance instDegreeEqMulOfLeadingCoeff : DegreeEq (p * q) where
 
 -- compute degree of sum where left side has greater degree
 variable [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
+@[simp]
 instance instDegreeEqAddLeft : DegreeEq (p + q) where
   D := DegreeEq.D p
   isEq :=
@@ -109,6 +99,7 @@ instance instDegreeEqAddLeft : DegreeEq (p + q) where
 
 -- compute degree of sum where right side has greater degree
 variable [DegreeLe p] [DegreeEq q] (h : degreeLt p q) in
+@[simp]
 instance instDegreeEqAddRight : DegreeEq (p + q) where
   D := DegreeEq.D q
   isEq :=
@@ -119,6 +110,7 @@ instance instDegreeEqAddRight : DegreeEq (p + q) where
 -- compute degree of sum where sides have same degree
 variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
+@[simp]
 instance instDegreeEqAddLeftBalancedOfLeadingCoeff : DegreeEq (p + q) where
   D := DegreeEq.D p
   isEq :=
@@ -132,6 +124,7 @@ instance instDegreeEqAddLeftBalancedOfLeadingCoeff : DegreeEq (p + q) where
 -- compute degree of sum where sides have same degree
 variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
+@[simp]
 instance instDegreeEqAddRightBalancedOfLeadingCoeff : DegreeEq (p + q) where
   D := DegreeEq.D q
   isEq :=
