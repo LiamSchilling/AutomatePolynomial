@@ -10,12 +10,12 @@ in Lean 4.
 
 ## Goals
 * General coefficient equality: `p.coeff n = c` where `n : Nat`, `c : R`
+* Degree upper bounds: `p.degree <= D` where `D : WithBot Nat`
+* Degree equality: `p.degree = D` where `D : WithBot Nat`
+* Leading coefficient equality: `p.leadingCoeff = c` where `c : R`
+* Evaluation equality: `p.eval x = y` where `x : R`, `y : R`
 * Expansion equality: `p = c0 + c1 * X + ... cN * X ^ N` where
 `N : Nat`, `c0 : R`, `c1 : R`, ... `cN : R`
-* Leading coefficient equality: `p.leadingCoeff = c` where `c : R`
-* Degree equality: `p.degree = D` where `D : WithBot Nat`
-* Degree upper bounds: `p.degree <= D` where `D : WithBot Nat`
-* Evaluation equality: `p.eval x = y` where `x : R`, `y : R`
 
 ## Approach
 By defining type class instances for base cases such as
