@@ -21,6 +21,14 @@ example : (C 2 : R[X]).coeff 1 = 0 := Coeffs.isEqAt 1
 example : (X : R[X]).coeff 0 = 0   := Coeffs.isEqAt 0
 example : (X : R[X]).coeff 1 = 1   := Coeffs.isEqAt 1
 
+-- closure cases
+example : (X + 1 : R[X]).coeff 0 = 0 + 1 := Coeffs.isEqAt 0
+example : (X + 1 : R[X]).coeff 1 = 1 + 0 := Coeffs.isEqAt 1
+example : (1 + X : R[X]).coeff 0 = 1 + 0 := Coeffs.isEqAt 0
+example : (1 + X : R[X]).coeff 1 = 0 + 1 := Coeffs.isEqAt 1
+example : (X + X : R[X]).coeff 0 = 0 + 0 := Coeffs.isEqAt 0
+example : (X + X : R[X]).coeff 1 = 1 + 1 := Coeffs.isEqAt 1
+
 end Coeffs
 
 section DegreeLe

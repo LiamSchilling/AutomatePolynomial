@@ -60,6 +60,7 @@ lemma apply_degreeEq (h : degreeEq p q) : p.degree = q.degree :=
   DegreeEq.isEq.symm.rec (DegreeEq.isEq.symm.rec h)
 
 -- exact degree implies upper bound on degree
+@[simp]
 def degreeLe_of_degreeEq [DegreeEq p] : DegreeLe p where
   D := DegreeEq.D p
   isLe := DegreeEq.isEq.rec (WithBot.le_self (fun _ => le_of_eq rfl))
@@ -211,6 +212,7 @@ instance instDegreeEqAddRight : DegreeEq (p + q) where
 -- compute degree of sum where sides have same degree
 variable (h : degreeEq p q) in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
+@[simp]
 def degreeEq_add_balanced_of_leadingCoeff : DegreeEq (p + q) where
   D := DegreeEq.D p
   isEq :=
@@ -311,6 +313,7 @@ instance instLeadingCoeffAddRight : LeadingCoeff (p + q) where
 -- compute leading coefficient of sum where sides have same degree
 variable [NeZero (leadingCoeffAdd p q)] in
 variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
+@[simp]
 def leadingCoeff_add_balanced_of_degreeEq : LeadingCoeff (p + q) where
   c := LeadingCoeff.c p + LeadingCoeff.c q
   isEq :=
