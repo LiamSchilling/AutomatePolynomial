@@ -22,12 +22,16 @@ example : (X : R[X]).coeff 0 = 0   := Coeffs.isEqAt 0
 example : (X : R[X]).coeff 1 = 1   := Coeffs.isEqAt 1
 
 -- closure cases
-example : (X + 1 : R[X]).coeff 0 = 0 + 1 := Coeffs.isEqAt 0
-example : (X + 1 : R[X]).coeff 1 = 1 + 0 := Coeffs.isEqAt 1
-example : (1 + X : R[X]).coeff 0 = 1 + 0 := Coeffs.isEqAt 0
-example : (1 + X : R[X]).coeff 1 = 0 + 1 := Coeffs.isEqAt 1
-example : (X + X : R[X]).coeff 0 = 0 + 0 := Coeffs.isEqAt 0
-example : (X + X : R[X]).coeff 1 = 1 + 1 := Coeffs.isEqAt 1
+example : (X ^ 2 : R[X]).coeff 1 = 0     := by rw[Coeffs.isEq]; simp
+example : (X ^ 2 : R[X]).coeff 2 = 1     := by rw[Coeffs.isEq]; simp
+example : (X * X : R[X]).coeff 1 = 0     := by rw[Coeffs.isEq]; simp
+example : (X * X : R[X]).coeff 2 = 1     := by rw[Coeffs.isEq]; simp
+example : (X + 1 : R[X]).coeff 0 = 1     := by rw[Coeffs.isEq]; simp
+example : (X + 1 : R[X]).coeff 1 = 1     := by rw[Coeffs.isEq]; simp
+example : (1 + X : R[X]).coeff 0 = 1     := by rw[Coeffs.isEq]; simp
+example : (1 + X : R[X]).coeff 1 = 1     := by rw[Coeffs.isEq]; simp
+example : (X + X : R[X]).coeff 0 = 0     := by rw[Coeffs.isEq]; simp
+example : (X + X : R[X]).coeff 1 = 1 + 1 := by rw[Coeffs.isEq]; simp
 
 end Coeffs
 
@@ -147,6 +151,20 @@ example : (X + X : R[X]).eval 0 = 0 + 0 := Eval.isEqAt 0
 example : (X + X : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
 
 end Eval
+
+section Expand
+
+-- closure cases
+
+example : (X + X : R[X]) = (1 + 1) * X := by
+  rw[(Coeffs.expand (X + X : R[X])).property]
+  simp; unfold_expand_aux; simp
+
+example : (X * X : R[X]) = X ^ 2 := by
+  rw[(Coeffs.expand (X * X : R[X])).property]
+  simp; unfold_expand_aux; simp
+
+end Expand
 
 section OfCoeffs
 

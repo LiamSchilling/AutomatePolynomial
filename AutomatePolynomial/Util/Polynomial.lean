@@ -45,37 +45,47 @@ def find_degree (D : WithBot ℕ) (h1 : degree p ≤ D) :
     find_degree (some D) h5
 termination_by match D with | ⊥ => 0 | some D => D.succ
 
-partial def coeff_list_mul_rec (ret : Bool) (C1L C1R C2L C2R accL accR : List R) : List R :=
-  match ret, C1L, C1R, C2L, C2R, accL, accR with
-  | false, c1 :: C1L,       [] ,       C2L,       C2R,      accL,      accR => coeff_list_mul_rec false C1L [c1] C2L C2R accL accR
-  | false,       C1L, c1 :: C1R, c2 :: C2L,       C2R,      []  ,      accR => coeff_list_mul_rec false C1L (c1 :: C1R) C2L (c2 :: C2R) accL ((c1 * c2) :: accR)
-  | false,       C1L, c1 :: C1R, c2 :: C2L,       C2R, c :: accL,      accR => coeff_list_mul_rec false C1L (c1 :: C1R) C2L (c2 :: C2R) accL ((c + c1 * c2) :: accR)
-  | false, c1 :: C1L,       C1R,       C2L,       C2R,      accL,      accR => coeff_list_mul_rec true C1L (c1 :: C1R) C2L C2R accL accR
-  | true ,       C1L,       C1R,       C2L, c2 :: C2R,      accL, c :: accR => coeff_list_mul_rec true C1L C1R (c2 :: C2L) C2R (c :: accL) accR
-  | true ,       C1L,       C1R,       C2L,       [] , c :: accL,      accR => coeff_list_mul_rec false C1L C1R C2L [] accL (c :: accR)
-  | _    ,       _  ,       _  ,       _  ,       _  ,      accL,      accR => accR.reverse ++ accL
+@[simp]
+def Coeffs.addBalancedAux (cs1 cs2 : List R) : List R :=
+  (List.zip cs1 cs2).map (fun (cp, cq) => cp + cq)
 
-def coeff_list_mul (C1 C2 : List R) : List R :=
-  coeff_list_mul_rec false C1 [] C2 [] [] []
+@[simp]
+def Coeffs.addAux (cs1 cs2 : List R) : List R :=
+  addBalancedAux
+    (List.replicate (max cs1.length cs2.length - cs1.length) 0 ++ cs1)
+    (List.replicate (max cs1.length cs2.length - cs2.length) 0 ++ cs2)
 
-def coeff_list_pow_rec (n : Nat) (C acc : List R) : List R :=
+@[simp]
+def Coeffs.mulConstAux (c : R) (cs : List R) : List R :=
+  cs.map (fun c' => c * c')
+
+@[simp]
+def Coeffs.mulXPowAux (n : ℕ) (cs : List R) : List R :=
+  cs ++ List.replicate n 0
+
+@[simp]
+def Coeffs.mulAux (cs1 cs2 : List R) : List R :=
+  match cs1 with
+  | [] => List.replicate cs2.length.pred 0
+  | c :: cs1 => addAux (mulAux cs1 cs2) (mulConstAux c (mulXPowAux cs1.length cs2))
+
+@[simp]
+def Coeffs.powAux (n : ℕ) (cs : List R) : List R :=
   match n with
-  | 0 => acc
-  | n + 1 => coeff_list_pow_rec n C (coeff_list_mul acc C)
-
-def coeff_list_pow (n : Nat) (C : List R) : List R :=
-  coeff_list_pow_rec n C [1]
+  | 0 => [1]
+  | n + 1 => mulAux (powAux n cs) cs
 
 -- given coefficients [cn, ... c1, c0]
 -- computes abstract polynomial (c0 + c1*x + ... cn*x^n)
-noncomputable def expand_rec (cs : List R) (n : Nat) (h : cs.length = n) : R[X] :=
+noncomputable def Coeffs.expandAux (cs : List R) (n : Nat) (h : cs.length = n) : R[X] :=
   match cs with
   | [] => 0
-  | c :: cs => expand_rec cs n.pred (Nat.pred_eq_of_eq_succ h.symm).symm + C c * X ^ n
-
--- given coefficients [c0, c1, ... cn]
--- computes abstract polynomial (c0 + c1*x + ... cn*x^n)
-noncomputable def expand (cs : List R) : R[X] :=
-  expand_rec cs.reverse cs.length cs.length_reverse
+  | c :: cs => expandAux cs n.pred (Nat.pred_eq_of_eq_succ h.symm).symm + C c * X ^ n.pred
 
 end Polynomial
+
+-- fully unfold expand call
+syntax "unfold_expand_aux" : tactic
+macro_rules
+  | `(tactic| unfold_expand_aux) =>
+    `(tactic| repeat unfold Polynomial.Coeffs.expandAux)
