@@ -12,7 +12,8 @@ class Eval (p : R[X]) where
   isEq : p.eval = f
 
 -- apply equality proof of evaluation at specific point
-lemma Eval.isEqAt {p : R[X]} [Eval p] : p.eval c = Eval.f p c :=
+lemma Eval.isEqAt {p : R[X]} [Eval p] :
+    p.eval c = Eval.f p c :=
   Eval.isEq.rec rfl
 
 section Eval
@@ -42,6 +43,20 @@ instance instEvalC : Eval (C c : R[X]) where
 instance instEvalX : Eval (X : R[X]) where
   f x := x
   isEq := funext (fun _ => eval_X)
+
+-- evaluation of the power of polynomial
+-- given the evaluations of the polynomial
+@[simp]
+instance instEvalPow : Eval (p ^ n) where
+  f := Eval.f p ^ n
+  isEq := sorry
+
+-- evaluation of the sum of polynomials
+-- given the evaluations of the polynomials
+@[simp]
+instance instEvalMul : Eval (p * q) where
+  f := Eval.f p * Eval.f q
+  isEq := sorry
 
 -- evaluation of the sum of polynomials
 -- given the evaluations of the polynomials

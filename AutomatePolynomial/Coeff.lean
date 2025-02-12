@@ -4,7 +4,6 @@ import AutomatePolynomial.WithBot
 namespace Polynomial
 
 variable {R : Type*} [Semiring R]
-variable [NoZeroDivisors R]
 variable (n : ℕ) (c : R) (p q : R[X])
 
 -- compute polynomial coefficients
@@ -35,13 +34,11 @@ def leadingCoeffAdd [LeadingCoeff p] [LeadingCoeff q] :=
   LeadingCoeff.c p + LeadingCoeff.c q
 
 -- apply equality proof to coefficient at specific degree
-omit [NoZeroDivisors R] in
-lemma Coeffs.isEqAt {p : R[X]} [Coeffs p] : p.coeff n = ((Coeffs.C p).reverse.get? n).getD 0 :=
-  Coeffs.isEq.symm.rec (rfl)
+lemma Coeffs.isEqAt {p : R[X]} [Coeffs p] :
+    p.coeff n = ((Coeffs.C p).reverse.get? n).getD 0 :=
+  Coeffs.isEq.symm.rec rfl
 
 section Coeffs
-
-variable [Coeffs p] [Coeffs q]
 
 -- the zero polynomial has coefficients 0
 @[simp]
@@ -107,19 +104,25 @@ instance instLeadingCoeffX : LeadingCoeff (X : R[X]) where
 
 -- compute leading coefficient of the power of a polynomial
 -- given the leading coefficient of the polynomial
--- given NoZeroDivisors
+-- given the result is nonzero
+variable [NeZero (leadingCoeffPow n p)] in
 @[simp]
 instance instLeadingCoeffPow : LeadingCoeff (p ^ n) where
   c := LeadingCoeff.c p ^ n
-  isEq := LeadingCoeff.isEq.rec (leadingCoeff_pow p n)
+  isEq :=
+    have _ := NeZero.ne (leadingCoeffPow n p)
+    sorry
 
 -- compute leading coefficient of the product of polynomials
 -- given the leading coefficient of the polynomials
--- given NoZeroDivisors
+-- given the result is nonzero
+variable [NeZero (leadingCoeffMul p q)] in
 @[simp]
 instance instLeadingCoeffMul : LeadingCoeff (p * q) where
   c := LeadingCoeff.c p * LeadingCoeff.c q
-  isEq := LeadingCoeff.isEq.rec (LeadingCoeff.isEq.rec (leadingCoeff_mul p q))
+  isEq :=
+    have _ := NeZero.ne (leadingCoeffMul p q)
+    sorry
 
 end LeadingCoeff
 

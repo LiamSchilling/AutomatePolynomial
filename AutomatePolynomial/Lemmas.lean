@@ -40,14 +40,31 @@ instance instLeadingCoeffAddRightOfDegree : LeadingCoeff (p + q) where
 -- compute leading coefficient of sum where sides have same degree
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
-@[simp]
-instance instLeadingCoeffAddBalancedOfDegree : LeadingCoeff (p + q) where
+def leadingCoeff_add_balanced_of_degree : LeadingCoeff (p + q) where
   c := LeadingCoeff.c p + LeadingCoeff.c q
   isEq :=
     LeadingCoeff.isEq.rec (LeadingCoeff.isEq.rec (
       leadingCoeff_add_of_degree_eq (apply_degreeEq h) (
         LeadingCoeff.isEq.symm.rec (LeadingCoeff.isEq.symm.rec (
           NeZero.ne (leadingCoeffAdd p q) )) ) ))
+
+-- compute leading coefficient of sum given both degrees
+variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
+variable [DegreeEq p] [DegreeEq q] in
+@[simp]
+instance instLeadingCoeffAddOfDegree : LeadingCoeff (p + q) :=
+  match compare (DegreeEq.D p) (DegreeEq.D q) with
+  | Ordering.gt =>
+    @instLeadingCoeffAddLeftOfDegree _ _ _ _ _
+      _ (degreeLe_of_degreeEq q)
+      sorry
+  | Ordering.lt =>
+    @instLeadingCoeffAddRightOfDegree _ _ _ _ _
+      (degreeLe_of_degreeEq p) _
+      sorry
+  | Ordering.eq =>
+    leadingCoeff_add_balanced_of_degree _ _
+      sorry
 
 end LeadingCoeff
 
@@ -110,8 +127,7 @@ instance instDegreeEqAddRight : DegreeEq (p + q) where
 -- compute degree of sum where sides have same degree
 variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
-@[simp]
-instance instDegreeEqAddLeftBalancedOfLeadingCoeff : DegreeEq (p + q) where
+def degreeEq_add_balanced_of_leadingCoeff : DegreeEq (p + q) where
   D := DegreeEq.D p
   isEq :=
     have _ := DegreeEq.D q
@@ -121,19 +137,23 @@ instance instDegreeEqAddLeftBalancedOfLeadingCoeff : DegreeEq (p + q) where
     have _ := NeZero.ne (leadingCoeffAdd p q)
     sorry
 
--- compute degree of sum where sides have same degree
-variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
+-- compute degree of sum given leading coeff inequality
+variable [DegreeEq p] [DegreeEq q] in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 @[simp]
-instance instDegreeEqAddRightBalancedOfLeadingCoeff : DegreeEq (p + q) where
-  D := DegreeEq.D q
-  isEq :=
-    have _ := DegreeEq.D p
-    have _ := h
-    have _ := LeadingCoeff.c p
-    have _ := LeadingCoeff.c q
-    have _ := NeZero.ne (leadingCoeffAdd p q)
-    sorry
+instance instDegreeEqAddOfleadingCoeff : DegreeEq (p + q) :=
+  match compare (DegreeEq.D p) (DegreeEq.D q) with
+  | Ordering.gt =>
+    @instDegreeEqAddLeft _ _ _ _
+      _ (degreeLe_of_degreeEq q)
+      sorry
+  | Ordering.lt =>
+    @instDegreeEqAddRight _ _ _ _
+      (degreeLe_of_degreeEq p) _
+      sorry
+  | Ordering.eq =>
+    degreeEq_add_balanced_of_leadingCoeff _ _
+      sorry
 
 end DegreeEq
 

@@ -5,7 +5,6 @@ namespace Polynomial
 
 variable {R : Type*} [Semiring R]
 variable [Nontrivial R]
-variable [NoZeroDivisors R] [NoAdditiveInverses R]
 variable [DecidablePred (Eq 0 : R → Prop)]
 variable (n : ℕ) (c : R) [NeZero c] (p q : R[X])
 
@@ -31,7 +30,6 @@ def degreeLt [DegreeLe p] [DegreeEq q] :=
 
 -- useful meaning of the computable degree equality
 omit [Nontrivial R] in
-omit [NoZeroDivisors R] [NoAdditiveInverses R] in
 omit [DecidablePred (Eq 0 : R → Prop)] in
 variable {p q : R[X]} [DegreeEq p] [DegreeEq q] in
 lemma apply_degreeEq (h : degreeEq p q) : p.degree = q.degree :=
@@ -39,7 +37,6 @@ lemma apply_degreeEq (h : degreeEq p q) : p.degree = q.degree :=
 
 -- useful meaning of the computable degree comparison
 omit [Nontrivial R] in
-omit [NoZeroDivisors R] [NoAdditiveInverses R] in
 omit [DecidablePred (Eq 0 : R → Prop)] in
 variable {p q : R[X]} [DegreeLe p] [DegreeEq q] in
 lemma apply_degreeLt (h : degreeLt p q) : p.degree < q.degree :=
@@ -51,8 +48,6 @@ def degreeLe_of_degreeEq [DegreeEq p] : DegreeLe p where
   isLe := DegreeEq.isEq.rec (WithBot.le_self (fun _ => le_of_eq rfl))
 
 section DegreeEq
-
-variable [DegreeEq p] [DegreeEq q]
 
 -- the zero polynomial has degree ⊥
 @[simp]
@@ -91,30 +86,6 @@ instance instDegreeEqC : DegreeEq (C c : R[X]) :=
 instance instDegreeEqX : DegreeEq (X : R[X]) where
   D := 1
   isEq := degree_X
-
--- compute degree of the power of a polynomial over nontrivial types
--- given degree of the polynomial
--- given NoZeroDivisors
-@[simp]
-instance instDegreeEqPow : DegreeEq (p ^ n) where
-  D := n • DegreeEq.D p
-  isEq := DegreeEq.isEq.rec (degree_pow p n)
-
--- compute degree of the product of polynomials
--- given the degree of the polynomials
--- given NoZeroDivisors
-@[simp]
-instance instDegreeEqMul : DegreeEq (p * q) where
-  D := DegreeEq.D p + DegreeEq.D q
-  isEq := DegreeEq.isEq.rec (DegreeEq.isEq.rec degree_mul)
-
--- compute degree of the sum of polynomials
--- given the degree of the polynomials
--- given NoAdditiveInverses
-@[simp]
-instance instDegreeEqAdd : DegreeEq (p + q) where
-  D := max (DegreeEq.D p) (DegreeEq.D q)
-  isEq := DegreeEq.isEq.rec (DegreeEq.isEq.rec degree_add)
 
 end DegreeEq
 
