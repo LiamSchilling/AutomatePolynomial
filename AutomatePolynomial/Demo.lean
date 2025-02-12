@@ -40,26 +40,15 @@ example [NoZeroDivisors R] : (X * X : R[X]).leadingCoeff = 1 * 1 := LeadingCoeff
 -- user assisted closure cases
 
 example [Nontrivial R] : (X + 1 : R[X]).leadingCoeff = 1 :=
-  let _ : LeadingCoeff (X + 1 : R[X]) := by
-    infer_instance_supposing
-    [ degreeLt (1 : R[X]) (X : R[X]) ]
-    . simp
+  let _ : LeadingCoeff (X + 1 : R[X]) := by infer_instance_trying <:> ( simp )
   LeadingCoeff.isEq
 
 example [Nontrivial R] : (1 + X : R[X]).leadingCoeff = 1 :=
-  let _ : LeadingCoeff (1 + X : R[X]) := by
-    infer_instance_supposing
-    [ degreeLt (1 : R[X]) (X : R[X]) ]
-    . simp
+  let _ : LeadingCoeff (1 + X : R[X]) := by infer_instance_trying <:> ( simp )
   LeadingCoeff.isEq
 
 example [Nontrivial R] [NeZero (1 + 1 : R)] : (X + X : R[X]).leadingCoeff = 1 + 1 :=
-  let _ : LeadingCoeff (X + X : R[X]) := by
-    infer_instance_supposing
-    [ degreeEq (X : R[X]) (X : R[X]),
-      NeZero (leadingCoeffAdd (X : R[X]) (X : R[X])) ]
-    . constructor; simp; apply NeZero.ne
-    . simp
+  let _ : LeadingCoeff (X + X : R[X]) := by infer_instance_trying <:> ( simp )
   LeadingCoeff.isEq
 
 end LeadingCoeff
@@ -84,40 +73,23 @@ example [Nontrivial R] [NoAdditiveInverses R] : (X + X : R[X]).degree = 1 := Deg
 -- user assisted closure cases
 
 example [Nontrivial R] : (X ^ 2 : R[X]).degree = 2 :=
-  let _ : DegreeEq (X ^ 2 : R[X]) := by
-    infer_instance_supposing
-    [ NeZero (leadingCoeffPow 2 (X : R[X])) ]
-    . constructor; simp
+  let _ : DegreeEq (X ^ 2 : R[X]) := by infer_instance_trying <:> ( constructor; simp )
   DegreeEq.isEq
 
 example [Nontrivial R] : (X * X : R[X]).degree = 2 :=
-  let _ : DegreeEq (X * X : R[X]) := by
-    infer_instance_supposing
-    [ NeZero (leadingCoeffMul (X : R[X]) (X : R[X])) ]
-    . constructor; simp
+  let _ : DegreeEq (X * X : R[X]) := by infer_instance_trying <:> ( constructor; simp )
   DegreeEq.isEq
 
 example [Nontrivial R] : (X + 1 : R[X]).degree = 1 :=
-  let _ : DegreeEq (X + 1 : R[X]) := by
-    infer_instance_supposing
-    [ degreeLt (1 : R[X]) (X : R[X]) ]
-    . simp
+  let _ : DegreeEq (X + 1 : R[X]) := by infer_instance_trying <:> ( simp )
   DegreeEq.isEq
 
 example [Nontrivial R] : (1 + X : R[X]).degree = 1 :=
-  let _ : DegreeEq (1 + X : R[X]) := by
-    infer_instance_supposing
-    [ degreeLt (1 : R[X]) (X : R[X]) ]
-    . simp
+  let _ : DegreeEq (1 + X : R[X]) := by infer_instance_trying <:> ( simp )
   DegreeEq.isEq
 
 example [Nontrivial R] [NeZero (1 + 1 : R)] : (X + X : R[X]).degree = 1 :=
-  let _ : DegreeEq (X + X : R[X]) := by
-    infer_instance_supposing
-    [ degreeEq (X : R[X]) (X : R[X]),
-      NeZero (leadingCoeffAdd (X : R[X]) (X : R[X])) ]
-    . simp
-    . constructor; simp; apply NeZero.ne
+  let _ : DegreeEq (X + X : R[X]) := by infer_instance_trying <:> ( simp )
   DegreeEq.isEq
 
 end DegreeEq

@@ -40,21 +40,49 @@ def synthInstanceSupposing (goal : MVarId) (patterns : List Expr) (d : Nat := 8)
   match d with
   | 0 => throwError "maximum recursion depth reached"
   | d + 1 =>
-  let target ← goal.getType
   try
-    goal.assign (← synthInstance target)
+    goal.assign (← synthInstance (← goal.getType))
     return []
   catch _ =>
-    if ← patterns.anyM (fun p => isDefEq target p) then
+    if ← patterns.anyM (fun p => do isDefEq (← goal.getType) p) then
       return [goal]
     else
-      for inst in ← SynthInstance.getInstances target do
+      for inst in ← SynthInstance.getInstances (← goal.getType) do
         let state ← saveState
         try
           let subgoals ← goal.applyNoInst inst.val
           let subgoals ← subgoals.mapM (
             fun subgoal => subgoal.synthInstanceSupposing patterns d )
           return subgoals.flatten
+        catch _ =>
+          restoreState state
+      throwError "failed to synthesize instance"
+
+-- recursively synthesize type class instances,
+-- trying a provided tactic to resolve those that fail
+def synthInstanceTrying (goal : MVarId) (tactic : Syntax) (d : Nat := 8) :
+    MetaM Unit := do
+  match d with
+  | 0 => throwError "maximum recursion depth reached"
+  | d + 1 =>
+  try
+    goal.assign (← synthInstance (← goal.getType))
+  catch _ =>
+    let state ← saveState
+    try
+      let (subgoals, _) ← runTactic goal tactic
+      match subgoals with
+      | [] => return
+      | _ => throwError "tactic failed to resolve subgoals"
+    catch _ =>
+      restoreState state
+      for inst in ← SynthInstance.getInstances (← goal.getType) do
+        let state ← saveState
+        try
+          let subgoals := (← goal.applyNoInst inst.val).reverse
+          let _ ← subgoals.mapM (
+            fun subgoal => subgoal.synthInstanceTrying tactic d )
+          return
         catch _ =>
           restoreState state
       throwError "failed to synthesize instance"
@@ -70,3 +98,8 @@ elab "infer_instance_supposing" "[" ts:term,* "]" : tactic => do
   let mut ps := []
   for t in ts do ps := (← elabTerm t none) :: ps
   setGoals (← (← getMainGoal).synthInstanceSupposing ps)
+
+-- recursively synthesize type class instances,
+-- trying a provided tactic to resolve those that fail
+elab "infer_instance_trying" "<:>" t:tactic : tactic => do
+  (← getMainGoal).synthInstanceTrying t
