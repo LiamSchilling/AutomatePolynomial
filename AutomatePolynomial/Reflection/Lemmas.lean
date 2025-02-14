@@ -7,23 +7,20 @@ namespace Polynomial
 variable {R : Type*} [Semiring R]
 variable (n : ℕ) (p q : R[X])
 
-/-
--- retrieve leading coefficient knowing degree and all coefficients
-variable [DegreeEq p] [Coeffs p] in
-def leadingCoeff_of_coeffs : LeadingCoeff p :=
-  ⟨ Coeffs.C p ((DegreeEq.D p).unbot' 0),
-    DegreeEq.isEq.rec (Coeffs.isEq.rec rfl) ⟩
--/
-
-/-
 -- search for degree knowing an upper bound and all coefficients
-variable [DegreeLe p] [Coeffs p] in
+variable [T : Coeffs p] in
 variable [DecidablePred (Eq 0 : R → Prop)] in
+@[simp]
 def degreeEq_of_coeffs : DegreeEq p :=
-  let _ : DecidablePred (fun n => 0 = p.coeff n) := by
-    rw[Coeffs.isEq]; infer_instance
-  let ⟨D, h⟩ := find_degree (DegreeLe.D p) DegreeLe.isLe
-  ⟨D, h⟩
--/
+  let ⟨T, h⟩ := T.drop_zeros
+  ⟨ T.repDegree, sorry ⟩
+
+-- retrieve leading coefficient knowing degree and all coefficients
+variable [T : Coeffs p] in
+variable [DecidablePred (Eq 0 : R → Prop)] in
+@[simp]
+def leadingCoeff_of_coeffs : LeadingCoeff p :=
+  let ⟨T, h⟩ := T.drop_zeros
+  ⟨ T.repLeading, sorry ⟩
 
 end Polynomial

@@ -152,9 +152,9 @@ example : (X + X : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
 
 end Eval
 
-section Expand
+section OfCoeffs
 
--- closure cases
+-- expand: closure cases
 
 example : (X + X : R[X]) = (1 + 1) * X := by
   rw[(Coeffs.expand (X + X : R[X])).property]
@@ -164,23 +164,48 @@ example : (X * X : R[X]) = X ^ 2 := by
   rw[(Coeffs.expand (X * X : R[X])).property]
   simp; unfold_expand_aux; simp
 
-end Expand
+-- degree: closure cases with explicit ring (for DecidableEq)
 
-section OfCoeffs
+example : (X ^ 2 : ℤ[X]).degree = 2 :=
+  let _ : DegreeEq (X ^ 2 : ℤ[X]) := degreeEq_of_coeffs _
+  DegreeEq.isEq
 
--- searches
+example : (X * X : ℤ[X]).degree = 2 :=
+  let _ : DegreeEq (X * X : ℤ[X]) := degreeEq_of_coeffs _
+  DegreeEq.isEq
 
-/-
-example : (X + 1 : Int[X]).degree = 1 :=
-  let _ : Coeffs (X + 1 : Int[X]) := inferInstance
-  let _ : DegreeEq (X + 1 : Int[X]) := degreeEq_of_coeffs (X + 1 : Int[X])
-  sorry
+example : (X + 1 : ℤ[X]).degree = 1 :=
+  let _ : DegreeEq (X + 1 : ℤ[X]) := degreeEq_of_coeffs _
+  DegreeEq.isEq
 
-example : (X + 1 : Int[X]).leadingCoeff = 1 :=
-  let _ : Coeffs (X + 1 : Int[X]) := inferInstance
-  let _ : DegreeEq (X + 1 : Int[X]) := degreeEq_of_coeffs (X + 1 : Int[X])
-  let _ : LeadingCoeff (X + 1 : Int[X]) := leadingCoeff_of_coeffs (X + 1 : Int[X])
-  sorry
--/
+example : (1 + X : ℤ[X]).degree = 1 :=
+  let _ : DegreeEq (1 + X : ℤ[X]) := degreeEq_of_coeffs _
+  DegreeEq.isEq
+
+example : (X + X : ℤ[X]).degree = 1 :=
+  let _ : DegreeEq (X + X : ℤ[X]) := degreeEq_of_coeffs _
+  DegreeEq.isEq
+
+-- leading coefficient: closure cases with explicit ring (for DecidableEq)
+
+example : (X ^ 2 : ℤ[X]).leadingCoeff = 1 :=
+  let _ : LeadingCoeff (X ^ 2 : ℤ[X]) := leadingCoeff_of_coeffs _
+  LeadingCoeff.isEq
+
+example : (X * X : ℤ[X]).leadingCoeff = 1 :=
+  let _ : LeadingCoeff (X * X : ℤ[X]) := leadingCoeff_of_coeffs _
+  LeadingCoeff.isEq
+
+example : (X + 1 : ℤ[X]).leadingCoeff = 1 :=
+  let _ : LeadingCoeff (X + 1 : ℤ[X]) := leadingCoeff_of_coeffs _
+  LeadingCoeff.isEq
+
+example : (1 + X : ℤ[X]).leadingCoeff = 1 :=
+  let _ : LeadingCoeff (1 + X : ℤ[X]) := leadingCoeff_of_coeffs _
+  LeadingCoeff.isEq
+
+example : (X + X : ℤ[X]).leadingCoeff = 2 :=
+  let _ : LeadingCoeff (X + X : ℤ[X]) := leadingCoeff_of_coeffs _
+  LeadingCoeff.isEq
 
 end OfCoeffs

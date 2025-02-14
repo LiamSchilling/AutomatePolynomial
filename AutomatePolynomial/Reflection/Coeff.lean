@@ -10,6 +10,20 @@ class Coeffs (p : R[X]) where
   C : List R
   isEq : p.coeff = fun n => (C.reverse.get? n).getD 0
 
+-- asserts there are no leading zeros
+def Coeffs.isMinimal {p : R[X]} (T : Coeffs p) : Prop :=
+  match T.C with | [] => True | c :: _ => 0 ≠ c
+
+-- what the degree would be if there were no leading zeros
+@[simp]
+def Coeffs.repDegree {p : R[X]} (T : Coeffs p) : WithBot ℕ :=
+  match T.C with | [] => ⊥ | _ :: cs => cs.length
+
+-- what the leading coefficient would be if there were no leading zeros
+@[simp]
+def Coeffs.repLeading {p : R[X]} (T : Coeffs p) : R :=
+  match T.C with | [] => 0 | c :: _ => c
+
 -- given coefficients [cn, ... c1, c0]
 -- computes abstract polynomial (c0 + c1*x + ... cn*x^n)
 @[simp]
@@ -20,6 +34,14 @@ noncomputable def Coeffs.expand [Coeffs p] : { q // p = q } :=
 lemma Coeffs.isEqAt {p : R[X]} [Coeffs p] :
     p.coeff n = ((Coeffs.C p).reverse.get? n).getD 0 :=
   Coeffs.isEq.symm.rec rfl
+
+-- drops leading zeros with proof of minimality
+variable [DecidablePred (Eq 0 : R → Prop)] in
+@[simp]
+def Coeffs.drop_zeros {p : R[X]} (T : Coeffs p) : { T' : Coeffs p // T'.isMinimal } := ⟨
+  { C := (Coeffs.C p).dropWhile (Eq 0 : R → Prop)
+    isEq := sorry },
+  sorry ⟩
 
 section Coeffs
 
