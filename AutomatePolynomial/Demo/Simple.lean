@@ -3,23 +3,23 @@ import AutomatePolynomial.Util.Tactics
 
 open Polynomial
 
-variable {R : Type*} [Semiring R]
-
 section Coeffs
 
+variable [Semiring R]
+
 -- base cases
-example : (0 : R[X]).coeff 0 = 0   := Coeffs.isEqAt 0
-example : (0 : R[X]).coeff 1 = 0   := Coeffs.isEqAt 1
-example : (1 : R[X]).coeff 0 = 1   := Coeffs.isEqAt 0
-example : (1 : R[X]).coeff 1 = 0   := Coeffs.isEqAt 1
-example : (C 0 : R[X]).coeff 0 = 0 := Coeffs.isEqAt 0
-example : (C 0 : R[X]).coeff 1 = 0 := Coeffs.isEqAt 1
-example : (C 1 : R[X]).coeff 0 = 1 := Coeffs.isEqAt 0
-example : (C 1 : R[X]).coeff 1 = 0 := Coeffs.isEqAt 1
-example : (C 2 : R[X]).coeff 0 = 2 := Coeffs.isEqAt 0
-example : (C 2 : R[X]).coeff 1 = 0 := Coeffs.isEqAt 1
-example : (X : R[X]).coeff 0 = 0   := Coeffs.isEqAt 0
-example : (X : R[X]).coeff 1 = 1   := Coeffs.isEqAt 1
+example : (0 : R[X]).coeff 0 = 0   := by rw[Coeffs.isEq]; simp
+example : (0 : R[X]).coeff 1 = 0   := by rw[Coeffs.isEq]; simp
+example : (1 : R[X]).coeff 0 = 1   := by rw[Coeffs.isEq]; simp
+example : (1 : R[X]).coeff 1 = 0   := by rw[Coeffs.isEq]; simp
+example : (C 0 : R[X]).coeff 0 = 0 := by rw[Coeffs.isEq]; simp
+example : (C 0 : R[X]).coeff 1 = 0 := by rw[Coeffs.isEq]; simp
+example : (C 1 : R[X]).coeff 0 = 1 := by rw[Coeffs.isEq]; simp
+example : (C 1 : R[X]).coeff 1 = 0 := by rw[Coeffs.isEq]; simp
+example : (C 2 : R[X]).coeff 0 = 2 := by rw[Coeffs.isEq]; simp
+example : (C 2 : R[X]).coeff 1 = 0 := by rw[Coeffs.isEq]; simp
+example : (X : R[X]).coeff 0 = 0   := by rw[Coeffs.isEq]; simp
+example : (X : R[X]).coeff 1 = 1   := by rw[Coeffs.isEq]; simp
 
 -- closure cases
 example : (X ^ 2 : R[X]).coeff 1 = 0     := by rw[Coeffs.isEq]; simp
@@ -36,6 +36,8 @@ example : (X + X : R[X]).coeff 1 = 1 + 1 := by rw[Coeffs.isEq]; simp
 end Coeffs
 
 section DegreeLe
+
+variable [Semiring R]
 
 -- base cases
 example : (0 : R[X]).degree ≤ ⊥   := DegreeLe.isLe
@@ -55,6 +57,8 @@ example : (X + X : R[X]).degree ≤ 1 := DegreeLe.isLe
 end DegreeLe
 
 section DegreeEq
+
+variable [Semiring R]
 
 -- base cases
 example                  : (0 : R[X]).degree = ⊥   := DegreeEq.isEq
@@ -89,6 +93,8 @@ example [Nontrivial R] [NeZero (1 + 1 : R)] : (X + X : R[X]).degree = 1 :=
 end DegreeEq
 
 section LeadingCoeff
+
+variable [Semiring R]
 
 -- base cases
 example : (0 : R[X]).leadingCoeff = 0   := LeadingCoeff.isEq
@@ -125,34 +131,36 @@ end LeadingCoeff
 section Eval
 
 -- base cases
-example : (0 : R[X]).eval 0 = 0   := Eval.isEqAt 0
-example : (0 : R[X]).eval 1 = 0   := Eval.isEqAt 1
-example : (1 : R[X]).eval 0 = 1   := Eval.isEqAt 0
-example : (1 : R[X]).eval 1 = 1   := Eval.isEqAt 1
-example : (C 0 : R[X]).eval 0 = 0 := Eval.isEqAt 0
-example : (C 0 : R[X]).eval 1 = 0 := Eval.isEqAt 1
-example : (C 1 : R[X]).eval 0 = 1 := Eval.isEqAt 0
-example : (C 1 : R[X]).eval 1 = 1 := Eval.isEqAt 1
-example : (C 2 : R[X]).eval 0 = 2 := Eval.isEqAt 0
-example : (C 2 : R[X]).eval 1 = 2 := Eval.isEqAt 1
-example : (X : R[X]).eval 0 = 0   := Eval.isEqAt 0
-example : (X : R[X]).eval 1 = 1   := Eval.isEqAt 1
+example [Semiring R] : (0 : R[X]).eval 0 = 0   := Eval.isEqAt 0
+example [Semiring R] : (0 : R[X]).eval 1 = 0   := Eval.isEqAt 1
+example [Semiring R] : (1 : R[X]).eval 0 = 1   := Eval.isEqAt 0
+example [Semiring R] : (1 : R[X]).eval 1 = 1   := Eval.isEqAt 1
+example [Semiring R] : (C 0 : R[X]).eval 0 = 0 := Eval.isEqAt 0
+example [Semiring R] : (C 0 : R[X]).eval 1 = 0 := Eval.isEqAt 1
+example [Semiring R] : (C 1 : R[X]).eval 0 = 1 := Eval.isEqAt 0
+example [Semiring R] : (C 1 : R[X]).eval 1 = 1 := Eval.isEqAt 1
+example [Semiring R] : (C 2 : R[X]).eval 0 = 2 := Eval.isEqAt 0
+example [Semiring R] : (C 2 : R[X]).eval 1 = 2 := Eval.isEqAt 1
+example [Semiring R] : (X : R[X]).eval 0 = 0   := Eval.isEqAt 0
+example [Semiring R] : (X : R[X]).eval 1 = 1   := Eval.isEqAt 1
 
 -- closure cases
-example : (X ^ 2 : R[X]).eval 0 = 0 ^ 2 := Eval.isEqAt 0
-example : (X ^ 2 : R[X]).eval 1 = 1 ^ 2 := Eval.isEqAt 1
-example : (X * X : R[X]).eval 0 = 0 * 0 := Eval.isEqAt 0
-example : (X * X : R[X]).eval 1 = 1 * 1 := Eval.isEqAt 1
-example : (X + 1 : R[X]).eval 0 = 0 + 1 := Eval.isEqAt 0
-example : (X + 1 : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
-example : (1 + X : R[X]).eval 0 = 1 + 0 := Eval.isEqAt 0
-example : (1 + X : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
-example : (X + X : R[X]).eval 0 = 0 + 0 := Eval.isEqAt 0
-example : (X + X : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
+example [CommSemiring R] : (X ^ 2 : R[X]).eval 0 = 0 ^ 2 := Eval.isEqAt 0
+example [CommSemiring R] : (X ^ 2 : R[X]).eval 1 = 1 ^ 2 := Eval.isEqAt 1
+example [CommSemiring R] : (X * X : R[X]).eval 0 = 0 * 0 := Eval.isEqAt 0
+example [CommSemiring R] : (X * X : R[X]).eval 1 = 1 * 1 := Eval.isEqAt 1
+example [Semiring R]     : (X + 1 : R[X]).eval 0 = 0 + 1 := Eval.isEqAt 0
+example [Semiring R]     : (X + 1 : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
+example [Semiring R]     : (1 + X : R[X]).eval 0 = 1 + 0 := Eval.isEqAt 0
+example [Semiring R]     : (1 + X : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
+example [Semiring R]     : (X + X : R[X]).eval 0 = 0 + 0 := Eval.isEqAt 0
+example [Semiring R]     : (X + X : R[X]).eval 1 = 1 + 1 := Eval.isEqAt 1
 
 end Eval
 
 section OfCoeffs
+
+variable [Semiring R]
 
 -- expand: closure cases
 

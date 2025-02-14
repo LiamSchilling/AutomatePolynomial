@@ -2,8 +2,7 @@ import AutomatePolynomial.Util.Polynomial
 
 namespace Polynomial
 
-variable {R : Type*} [Semiring R]
-variable (n : ℕ) (c : R) (p q : R[X])
+variable [Semiring R]
 
 -- compute polynomial coefficients
 class Coeffs (p : R[X]) where
@@ -27,25 +26,24 @@ def Coeffs.repLeading {p : R[X]} (T : Coeffs p) : R :=
 -- given coefficients [cn, ... c1, c0]
 -- computes abstract polynomial (c0 + c1*x + ... cn*x^n)
 @[simp]
-noncomputable def Coeffs.expand [Coeffs p] : { q // p = q } :=
+noncomputable def Coeffs.expand (p : R[X]) [Coeffs p] : { q // p = q } :=
   ⟨ expandAux (Coeffs.C p) (Coeffs.C p).length rfl, sorry ⟩
 
 -- apply equality proof to coefficient at specific degree
-lemma Coeffs.isEqAt {p : R[X]} [Coeffs p] :
+lemma Coeffs.isEqAt [Coeffs p] (n : ℕ) :
     p.coeff n = ((Coeffs.C p).reverse.get? n).getD 0 :=
   Coeffs.isEq.symm.rec rfl
 
 -- drops leading zeros with proof of minimality
 variable [DecidablePred (Eq 0 : R → Prop)] in
 @[simp]
-def Coeffs.drop_zeros {p : R[X]} (T : Coeffs p) : { T' : Coeffs p // T'.isMinimal } := ⟨
-  { C := (Coeffs.C p).dropWhile (Eq 0 : R → Prop)
+def Coeffs.to_minimal {p : R[X]} (T : Coeffs p) :
+    { T' : Coeffs p // T'.isMinimal } := ⟨
+  { C := T.C.dropWhile (Eq 0 : R → Prop)
     isEq := sorry },
   sorry ⟩
 
 section Coeffs
-
-variable [Coeffs p] [Coeffs q]
 
 -- the zero polynomial has coefficients 0
 @[simp]
@@ -72,18 +70,21 @@ instance instCoeffsX : Coeffs (X : R[X]) where
   isEq := sorry
 
 -- compute coefficients of power
+variable (p : R[X]) [Coeffs p] in
 @[simp]
 instance instCoeffPow : Coeffs (p ^ n) where
   C := Coeffs.powAux n (Coeffs.C p)
   isEq := sorry
 
 -- compute coefficients of product
+variable (p q : R[X]) [Coeffs p] [Coeffs q] in
 @[simp]
 instance instCoeffMul : Coeffs (p * q) where
   C := Coeffs.mulAux (Coeffs.C p) (Coeffs.C q)
   isEq := sorry
 
 -- compute coefficients of sum
+variable (p q : R[X]) [Coeffs p] [Coeffs q] in
 @[simp]
 instance instCoeffsAdd : Coeffs (p + q) where
   C := Coeffs.addAux (Coeffs.C p) (Coeffs.C q)

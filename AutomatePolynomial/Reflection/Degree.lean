@@ -3,9 +3,7 @@ import AutomatePolynomial.Util.WithBot
 
 namespace Polynomial
 
-variable {R : Type*} [Semiring R]
-variable [Nontrivial R]
-variable (n : ℕ) (c : R) (p q : R[X])
+variable [Semiring R] [Nontrivial R]
 
 -- compute greedy upper bound on polynomial degree
 class DegreeLe (p : R[X]) where
@@ -24,27 +22,27 @@ class LeadingCoeff (p : R[X]) where
 
 -- degree of p is definitely less than degree of q
 @[simp]
-def degreeLt [DegreeLe p] [DegreeEq q] :=
+def degreeLt (p q : R[X]) [DegreeLe p] [DegreeEq q] :=
   DegreeLe.D p < DegreeEq.D q
 
 -- degree of p is definitely equal to degree of q
 @[simp]
-def degreeEq [DegreeEq p] [DegreeEq q] :=
+def degreeEq (p q : R[X]) [DegreeEq p] [DegreeEq q] :=
   DegreeEq.D p = DegreeEq.D q
 
 -- power of leading coefficient
 @[simp]
-def leadingCoeffPow [LeadingCoeff p] :=
+def leadingCoeffPow (p : R[X]) (n : ℕ) [LeadingCoeff p] :=
   LeadingCoeff.c p ^ n
 
 -- product of leading coefficients
 @[simp]
-def leadingCoeffMul [LeadingCoeff p] [LeadingCoeff q] :=
+def leadingCoeffMul (p q : R[X]) [LeadingCoeff p] [LeadingCoeff q] :=
   LeadingCoeff.c p * LeadingCoeff.c q
 
 -- sum of leading coefficients
 @[simp]
-def leadingCoeffAdd [LeadingCoeff p] [LeadingCoeff q] :=
+def leadingCoeffAdd (p q : R[X]) [LeadingCoeff p] [LeadingCoeff q] :=
   LeadingCoeff.c p + LeadingCoeff.c q
 
 -- useful meaning of the computable degree comparison
@@ -61,13 +59,11 @@ lemma apply_degreeEq (h : degreeEq p q) : p.degree = q.degree :=
 
 -- exact degree implies upper bound on degree
 @[simp]
-def degreeLe_of_degreeEq [DegreeEq p] : DegreeLe p where
+def degreeLe_of_degreeEq (p : R[X]) [DegreeEq p] : DegreeLe p where
   D := DegreeEq.D p
   isLe := DegreeEq.isEq.rec (WithBot.le_self (fun _ => le_of_eq rfl))
 
 section DegreeLe
-
-variable [DegreeLe p] [DegreeLe q]
 
 -- the zero polynomial has degree at most ⊥
 @[simp]
@@ -87,7 +83,7 @@ instance instDegreeLeOne : DegreeLe (1 : R[X]) where
 instance instDegreeLeCZero : DegreeLe (C 0 : R[X]) where
   D := ⊥
   isLe :=
-    (C_0).symm.rec (degree_le_iff_coeff_zero 0 ⊥).mpr (fun _ => congrFun rfl)
+    C_0.symm.rec (degree_le_iff_coeff_zero 0 ⊥).mpr (fun _ => congrFun rfl)
 
 -- a constant polynomial has degree at most 0
 @[simp]
@@ -103,6 +99,7 @@ instance instDegreeLeX : DegreeLe (X : R[X]) where
 
 -- compute upper bound of the power of a polynomial
 -- given upper bound of the polynomial
+variable (p : R[X]) [DegreeLe p] in
 @[simp]
 instance instDegreeLePow : DegreeLe (p ^ n) where
   D := n * DegreeLe.D p
@@ -110,6 +107,7 @@ instance instDegreeLePow : DegreeLe (p ^ n) where
 
 -- compute upper bound of the product of polynomials
 -- given the upper bound of the polynomials
+variable (p q : R[X]) [DegreeLe p] [DegreeLe q] in
 @[simp]
 instance instDegreeLeMul : DegreeLe (p * q) where
   D := DegreeLe.D p + DegreeLe.D q
@@ -117,6 +115,7 @@ instance instDegreeLeMul : DegreeLe (p * q) where
 
 -- compute upper bound of the sum of polynomials
 -- given the upper bound of the polynomials
+variable (p q : R[X]) [DegreeLe p] [DegreeLe q] in
 @[simp]
 instance instDegreeLeAdd : DegreeLe (p + q) where
   D := max (DegreeLe.D p) (DegreeLe.D q)
@@ -125,8 +124,6 @@ instance instDegreeLeAdd : DegreeLe (p + q) where
 end DegreeLe
 
 section DegreeEq
-
-variable [DegreeEq p] [DegreeEq q]
 
 -- the zero polynomial has degree ⊥
 @[simp]
@@ -147,7 +144,7 @@ instance instDegreeEqCZero : DegreeEq (C 0 : R[X]) where
   isEq := leadingCoeff_eq_zero_iff_deg_eq_bot.mp (leadingCoeff_C 0)
 
 -- a nonzero constant polynomial has degree 0
-variable [NeZero c] in
+variable {c : R} [NeZero c] in
 @[simp]
 instance instDegreeEqCNonzero : DegreeEq (C c : R[X]) where
   D := 0
@@ -169,28 +166,30 @@ instance instDegreeEqX : DegreeEq (X : R[X]) where
   isEq := degree_X
 
 -- compute degree of power given leading coefficient does not become zero
-variable [LeadingCoeff p] [NeZero (leadingCoeffPow n p)] in
+variable (p : R[X]) [DegreeEq p] in
+variable [LeadingCoeff p] [NeZero (leadingCoeffPow p n)] in
 @[simp]
 instance instDegreeEqPowOfLeadingCoeff : DegreeEq (p ^ n) where
-  D := DegreeEq.D p * n
+  D := n • DegreeEq.D p
   isEq :=
-    have _ := LeadingCoeff.c p
-    have _ := NeZero.ne (leadingCoeffPow n p)
-    sorry
+    DegreeEq.isEq.rec (degree_pow' (
+      LeadingCoeff.isEq.symm.rec (
+        NeZero.ne (leadingCoeffPow p n) ) ))
 
 -- compute degree of product given leading coefficient does not become zero
+variable (p q : R[X]) [DegreeEq p] [DegreeEq q] in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
 @[simp]
 instance instDegreeEqMulOfLeadingCoeff : DegreeEq (p * q) where
   D := DegreeEq.D p + DegreeEq.D q
   isEq :=
-    have _ := LeadingCoeff.c p
-    have _ := LeadingCoeff.c q
-    have _ := NeZero.ne (leadingCoeffMul p q)
-    sorry
+    DegreeEq.isEq.rec (DegreeEq.isEq.rec (degree_mul' (
+      LeadingCoeff.isEq.symm.rec (LeadingCoeff.isEq.symm.rec (
+        NeZero.ne (leadingCoeffMul p q) )) )))
 
 -- compute degree of sum where left side has greater degree
-variable [DegreeLe q] (h : degreeLt q p) in
+variable (p q : R[X]) [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
+variable [LeadingCoeff p] in
 @[simp]
 instance instDegreeEqAddLeft : DegreeEq (p + q) where
   D := DegreeEq.D p
@@ -200,7 +199,8 @@ instance instDegreeEqAddLeft : DegreeEq (p + q) where
     sorry
 
 -- compute degree of sum where right side has greater degree
-variable [DegreeLe p] (h : degreeLt p q) in
+variable (p q : R[X]) [DegreeEq q] [DegreeLe p] (h : degreeLt p q) in
+variable [LeadingCoeff q] in
 @[simp]
 instance instDegreeEqAddRight : DegreeEq (p + q) where
   D := DegreeEq.D q
@@ -210,7 +210,7 @@ instance instDegreeEqAddRight : DegreeEq (p + q) where
     sorry
 
 -- compute degree of sum where sides have same degree
-variable (h : degreeEq p q) in
+variable (p q : R[X]) [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 @[simp]
 def degreeEq_add_balanced_of_leadingCoeff : DegreeEq (p + q) where
@@ -224,27 +224,26 @@ def degreeEq_add_balanced_of_leadingCoeff : DegreeEq (p + q) where
     sorry
 
 -- compute degree of sum given leading coeff inequality
+variable (p q : R[X]) [DegreeEq p] [DegreeEq q] in
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 @[simp]
 instance instDegreeEqAddOfLeadingCoeff : DegreeEq (p + q) :=
-  match compare (DegreeEq.D p) (DegreeEq.D q) with
+  match h : compare (DegreeEq.D p) (DegreeEq.D q) with
   | Ordering.gt =>
     @instDegreeEqAddLeft _ _ _ _ _
       (degreeLe_of_degreeEq q)
-      sorry
+      ((compare_iff _ _).mp h)
   | Ordering.lt =>
     @instDegreeEqAddRight _ _ _ _ _
       (degreeLe_of_degreeEq p)
-      sorry
+      ((compare_iff _ _).mp h)
   | Ordering.eq =>
     degreeEq_add_balanced_of_leadingCoeff _ _
-      sorry
+      ((compare_iff _ _).mp h)
 
 end DegreeEq
 
 section LeadingCoeff
-
-variable [LeadingCoeff p] [LeadingCoeff q]
 
 -- the zero polynomial has leading coefficient 0
 @[simp]
@@ -273,27 +272,32 @@ instance instLeadingCoeffX : LeadingCoeff (X : R[X]) where
 -- compute leading coefficient of the power of a polynomial
 -- given the leading coefficient of the polynomial
 -- given the result is nonzero
-variable [NeZero (leadingCoeffPow n p)] in
+variable (p : R[X]) in
+variable [LeadingCoeff p] [NeZero (leadingCoeffPow p n)] in
 @[simp]
 instance instLeadingCoeffPow : LeadingCoeff (p ^ n) where
   c := LeadingCoeff.c p ^ n
   isEq :=
-    have _ := NeZero.ne (leadingCoeffPow n p)
-    sorry
+    LeadingCoeff.isEq.rec (leadingCoeff_pow' (
+      LeadingCoeff.isEq.symm.rec (
+        NeZero.ne (leadingCoeffPow p n) ) ))
 
 -- compute leading coefficient of the product of polynomials
 -- given the leading coefficient of the polynomials
 -- given the result is nonzero
-variable [NeZero (leadingCoeffMul p q)] in
+variable (p q : R[X]) in
+variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
 @[simp]
 instance instLeadingCoeffMul : LeadingCoeff (p * q) where
   c := LeadingCoeff.c p * LeadingCoeff.c q
   isEq :=
-    have _ := NeZero.ne (leadingCoeffMul p q)
-    sorry
+    LeadingCoeff.isEq.rec (LeadingCoeff.isEq.rec (leadingCoeff_mul' (
+      LeadingCoeff.isEq.symm.rec (LeadingCoeff.isEq.symm.rec (
+        NeZero.ne (leadingCoeffMul p q) )) )))
 
 -- compute leading coefficient of sum where left side has greater degree
-variable [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
+variable (p q : R[X]) [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
+variable [LeadingCoeff p] in
 @[simp]
 instance instLeadingCoeffAddLeft : LeadingCoeff (p + q) where
   c := LeadingCoeff.c p
@@ -302,7 +306,8 @@ instance instLeadingCoeffAddLeft : LeadingCoeff (p + q) where
       apply_degreeLt h ))
 
 -- compute leading coefficient of sum where right side has greater degree
-variable [DegreeEq q] [DegreeLe p] (h : degreeLt p q) in
+variable (p q : R[X]) [DegreeEq q] [DegreeLe p] (h : degreeLt p q) in
+variable [LeadingCoeff q] in
 @[simp]
 instance instLeadingCoeffAddRight : LeadingCoeff (p + q) where
   c := LeadingCoeff.c q
@@ -311,8 +316,8 @@ instance instLeadingCoeffAddRight : LeadingCoeff (p + q) where
       apply_degreeLt h ))
 
 -- compute leading coefficient of sum where sides have same degree
-variable [NeZero (leadingCoeffAdd p q)] in
-variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
+variable (p q : R[X]) [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
+variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 @[simp]
 def leadingCoeff_add_balanced_of_degreeEq : LeadingCoeff (p + q) where
   c := LeadingCoeff.c p + LeadingCoeff.c q
@@ -323,22 +328,22 @@ def leadingCoeff_add_balanced_of_degreeEq : LeadingCoeff (p + q) where
           NeZero.ne (leadingCoeffAdd p q) )) ) ))
 
 -- compute leading coefficient of sum given both degrees
-variable [NeZero (leadingCoeffAdd p q)] in
-variable [DegreeEq p] [DegreeEq q] in
+variable (p q : R[X]) [DegreeEq p] [DegreeEq q] in
+variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 @[simp]
 instance instLeadingCoeffAddOfDegreeEq : LeadingCoeff (p + q) :=
-  match compare (DegreeEq.D p) (DegreeEq.D q) with
+  match h : compare (DegreeEq.D p) (DegreeEq.D q) with
   | Ordering.gt =>
-    @instLeadingCoeffAddLeft _ _ _ _ _ _
+    @instLeadingCoeffAddLeft _ _ _ _ _
       (degreeLe_of_degreeEq q)
-      sorry
+      ((compare_iff _ _).mp h) _
   | Ordering.lt =>
-    @instLeadingCoeffAddRight _ _ _ _ _ _
+    @instLeadingCoeffAddRight _ _ _ _ _
       (degreeLe_of_degreeEq p)
-      sorry
+      ((compare_iff _ _).mp h) _
   | Ordering.eq =>
     leadingCoeff_add_balanced_of_degreeEq _ _
-      sorry
+      ((compare_iff _ _).mp h)
 
 end LeadingCoeff
 
