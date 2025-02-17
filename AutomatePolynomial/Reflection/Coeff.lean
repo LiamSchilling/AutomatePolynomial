@@ -49,25 +49,58 @@ section Coeffs
 @[simp]
 instance instCoeffsZero : Coeffs (0 : R[X]) where
   C := []
-  isEq := sorry
+  isEq := funext (fun _ => rfl)
 
 -- the one polynomial has coefficient 1 at degree 0
 @[simp]
 instance instCoeffsOne : Coeffs (1 : R[X]) where
   C := [1]
-  isEq := sorry
+  isEq := by
+    apply funext
+    intro n
+    rw[coeff_one]
+    match inferInstanceAs (Decidable (n = 0)) with
+    | isFalse h =>
+      symm; simp [if_neg h, Option.getD_eq_iff]
+      apply Or.inr; assumption
+    | isTrue h =>
+      rw[if_pos h, h]; rfl
 
 -- the constant c polynomial has coefficient c at degree 0
 @[simp]
 instance instCoeffsC : Coeffs (C c : R[X]) where
   C := [c]
-  isEq := sorry
+  isEq := by
+    apply funext
+    intro n
+    rw[coeff_C]
+    match inferInstanceAs (Decidable (n = 0)) with
+    | isFalse h =>
+      symm; simp [if_neg h, Option.getD_eq_iff]
+      apply Or.inr; assumption
+    | isTrue h =>
+      rw[if_pos h, h]; rfl
 
 -- the identity polynomial has coefficient 1 at degree 1
 @[simp]
 instance instCoeffsX : Coeffs (X : R[X]) where
   C := [1, 0]
-  isEq := sorry
+  isEq := by
+    apply funext
+    intro n
+    rw[coeff_X]
+    match inferInstanceAs (Decidable (1 = n)) with
+    | isFalse h =>
+      symm; simp [if_neg h, Option.getD_eq_iff]
+      match inferInstanceAs (Decidable (0 = n)) with
+      | isFalse h =>
+        apply Or.inr
+        apply (Nat.two_le_iff n).mpr; constructor <;> (symm; assumption)
+      | isTrue h =>
+        apply Or.inl
+        rw[←h]; rfl
+    | isTrue h =>
+      rw[if_pos h, ←h]; rfl
 
 -- compute coefficients of power
 variable (p : R[X]) [Coeffs p] in
