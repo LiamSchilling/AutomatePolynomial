@@ -30,16 +30,26 @@ instance instMvDegreeLeC : MvDegreeLe (C c : MvPolynomial σ R) i where
   isLe := le_of_eq (degreeOf_C c i)
 
 -- the identity in a different variable has degree at most 0
-variable {j i : σ} in
+variable {j i : σ} (h : j ≠ i) in
 @[simp]
-instance instMvDegreeLeXNe (h : j ≠ i) : MvDegreeLe (X j : MvPolynomial σ R) i where
+instance instMvDegreeLeXNe : MvDegreeLe (X j : MvPolynomial σ R) i where
   D := 0
-  isLe := sorry
+  isLe :=
+    have _ := h
+    sorry
 
 -- the identity polynomial has degree at most 1
 @[simp]
-instance instMvDegreeLeX : MvDegreeLe (X j : MvPolynomial σ R) i where
+instance instMvDegreeLeXGen : MvDegreeLe (X j : MvPolynomial σ R) i where
   D := 1
+  isLe := sorry
+
+-- compute constant polynomial degree
+-- given decidability of whether the constant is zero
+variable [DecidableEq σ] in
+@[simp]
+instance instMvDegreeLeX : MvDegreeLe (X j : MvPolynomial σ R) i where
+  D := if i = j then 1 else 0
   isLe := sorry
 
 -- compute upper bound of the power of a polynomial

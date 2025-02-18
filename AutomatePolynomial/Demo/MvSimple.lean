@@ -8,19 +8,32 @@ section DegreeLe
 variable [CommSemiring R]
 
 -- base cases
-example             : (0 : MvPolynomial σ R).degreeOf i ≤ 0      := MvDegreeLe.isLe
-example             : (C 0 : MvPolynomial σ R).degreeOf i ≤ 0    := MvDegreeLe.isLe
-example             : (C 1 : MvPolynomial σ R).degreeOf i ≤ 0    := MvDegreeLe.isLe
-example             : (X i : MvPolynomial Bool R).degreeOf i ≤ 1 := MvDegreeLe.isLe
-example (h : j ≠ i) : (X j : MvPolynomial Bool R).degreeOf i ≤ 0 := sorry
+example : (0 : MvPolynomial σ R).degreeOf i ≤ 0   := MvDegreeLe.isLe
+example : (C 0 : MvPolynomial σ R).degreeOf i ≤ 0 := MvDegreeLe.isLe
+example : (C 1 : MvPolynomial σ R).degreeOf i ≤ 0 := MvDegreeLe.isLe
+example : (X j : MvPolynomial σ R).degreeOf i ≤ 1 := MvDegreeLe.isLe
+
+variable {j i : σ} in
+example (h : j ≠ i) : (X j : MvPolynomial σ R).degreeOf i ≤ 0 :=
+  let _ : MvDegreeLe (X j : MvPolynomial σ R) i := by infer_instance_trying <:> ( trivial )
+  MvDegreeLe.isLe
+
+-- base cases with explicit index set (for DecidableEq)
+example : (X false : MvPolynomial Bool R).degreeOf false ≤ 1 := MvDegreeLe.isLe
+example : (X false : MvPolynomial Bool R).degreeOf true  ≤ 0 := MvDegreeLe.isLe
+example : (X true  : MvPolynomial Bool R).degreeOf false ≤ 0 := MvDegreeLe.isLe
+example : (X true  : MvPolynomial Bool R).degreeOf true  ≤ 1 := MvDegreeLe.isLe
 
 -- closure cases
-/-
-example : (X ^ 2 : R[X]).degree ≤ 2 := DegreeLe.isLe
-example : (X * X : R[X]).degree ≤ 2 := DegreeLe.isLe
-example : (X + 1 : R[X]).degree ≤ 1 := DegreeLe.isLe
-example : (1 + X : R[X]).degree ≤ 1 := DegreeLe.isLe
-example : (X + X : R[X]).degree ≤ 1 := DegreeLe.isLe
--/
+
+variable {j i : σ} in
+example (h : j ≠ i) : (X j ^ 3 * X i ^ 2 : MvPolynomial σ R).degreeOf i ≤ 2 :=
+  let _ : MvDegreeLe (X j ^ 3 * X i ^ 2 : MvPolynomial σ R) i := by infer_instance_trying <:> ( trivial )
+  sorry
+
+variable {j i : σ} in
+example (h : j ≠ i) : (X j ^ 3 + X i ^ 2 : MvPolynomial σ R).degreeOf i ≤ 2 :=
+  let _ : MvDegreeLe (X j ^ 2 + X i ^ 2 : MvPolynomial σ R) i := by infer_instance_trying <:> ( trivial )
+  sorry
 
 end DegreeLe

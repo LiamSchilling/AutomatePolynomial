@@ -23,3 +23,28 @@ def leadingCoeff_of_coeffs : LeadingCoeff p :=
   ⟨ T.repLeading, sorry ⟩
 
 end Polynomial
+
+syntax "reflect_coeff" : tactic
+macro_rules
+  | `(tactic| reflect_coeff) =>
+    `(tactic| rw[Polynomial.Coeffs.isEq]; simp)
+
+syntax "reflect_degree_le" : tactic
+macro_rules
+  | `(tactic| reflect_degree_le) =>
+    `(tactic| apply Polynomial.DegreeLe.isLe)
+
+syntax "reflect_degree_eq" : tactic
+macro_rules
+  | `(tactic| reflect_degree_eq) =>
+    `(tactic| apply Polynomial.DegreeEq.isEq)
+
+syntax "reflect_leading_coeff" : tactic
+macro_rules
+  | `(tactic| reflect_leading_coeff) =>
+    `(tactic| apply Polynomial.LeadingCoeff.isEq)
+
+syntax "reflect_eval" : tactic
+macro_rules
+  | `(tactic| reflect_eval) =>
+    `(tactic| apply Polynomial.Eval.isEqAt)
