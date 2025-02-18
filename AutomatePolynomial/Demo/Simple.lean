@@ -164,7 +164,7 @@ variable [Semiring R]
 
 -- expand: closure cases
 
-example : (X + X : R[X]) = (1 + 1) * X := by
+example : (X + X : R[X]) = C (1 + 1) * X := by
   rw[(Coeffs.expand (X + X : R[X])).property]
   simp; unfold_expand_aux; simp
 
