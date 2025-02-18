@@ -19,8 +19,7 @@ def synthInstanceSupposing (goal : MVarId) (patterns : List Expr) (d : Nat := 8)
     for inst in ← SynthInstance.getInstances (← goal.getType) do
       let state ← saveState
       try
-        let subgoals ← goal.apply inst.val {
-          synthAssignedInstances := false, allowSynthFailures := true }
+        let subgoals ← goal.apply inst.val { allowSynthFailures := true }
         let subgoals ← subgoals.mapM (
           fun subgoal => subgoal.synthInstanceSupposing patterns d )
         return subgoals.flatten
@@ -46,8 +45,7 @@ def synthInstanceTrying (goal : MVarId) (tactic : Syntax) (d : Nat := 8) :
     for inst in ← SynthInstance.getInstances (← goal.getType) do
       let state ← saveState
       try
-        let subgoals ← goal.apply inst.val {
-          synthAssignedInstances := false, allowSynthFailures := true }
+        let subgoals ← goal.apply inst.val { allowSynthFailures := true }
         let _ ← subgoals.mapM (
           fun subgoal => subgoal.synthInstanceTrying tactic d )
         return
@@ -72,9 +70,16 @@ elab "infer_instance_supposing" "[" ts:term,* "]" : tactic => do
 elab "infer_instance_trying" "<:>" t:tactic : tactic => do
   (← getMainGoal).synthInstanceTrying t
 
+-- intended for combination with infer_instance_trying
+-- tries some regular tactics
+syntax "try_reg" : tactic
+macro_rules
+  | `(tactic| try_reg) =>
+    `(tactic| (try simp) <;> (try constructor) <;> (try simp) )
+
 -- recursively synthesize type class instances
 -- slightly stronger than normal inferInstance
 syntax "infer_instance_trying" : tactic
 macro_rules
   | `(tactic| infer_instance_trying) =>
-    `(tactic| infer_instance_trying <:> ( skip ) )
+    `(tactic| infer_instance_trying <:> ( try_reg ))

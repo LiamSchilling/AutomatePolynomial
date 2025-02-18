@@ -1,6 +1,7 @@
 import AutomatePolynomial.Reflection.Coeff
 import AutomatePolynomial.Reflection.Degree
 import AutomatePolynomial.Reflection.Eval
+import AutomatePolynomial.Util.Tactics
 
 namespace Polynomial
 
@@ -32,19 +33,52 @@ macro_rules
 syntax "reflect_degree_le" : tactic
 macro_rules
   | `(tactic| reflect_degree_le) =>
-    `(tactic| apply Polynomial.DegreeLe.isLe)
+    `(tactic| apply le_trans Polynomial.DegreeLe.isLe; try trivial)
 
 syntax "reflect_degree_eq" : tactic
 macro_rules
   | `(tactic| reflect_degree_eq) =>
-    `(tactic| apply Polynomial.DegreeEq.isEq)
+    `(tactic| apply Eq.trans Polynomial.DegreeEq.isEq; try trivial)
+
+syntax "reflect_degree_eq_trying" "<:>" tactic : tactic
+macro_rules
+  | `(tactic| reflect_degree_eq_trying <:> $t) =>
+    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (by infer_instance_trying <:> $t)); try trivial)
+syntax "reflect_degree_eq_trying" : tactic
+macro_rules
+  | `(tactic| reflect_degree_eq_trying) =>
+    `(tactic| reflect_degree_eq_trying <:> ( try_reg ))
 
 syntax "reflect_leading_coeff" : tactic
 macro_rules
   | `(tactic| reflect_leading_coeff) =>
-    `(tactic| apply Polynomial.LeadingCoeff.isEq)
+    `(tactic| apply Eq.trans Polynomial.LeadingCoeff.isEq; try trivial)
+
+syntax "reflect_leading_coeff_trying" "<:>" tactic : tactic
+macro_rules
+  | `(tactic| reflect_leading_coeff_trying <:> $t) =>
+    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (by infer_instance_trying <:> $t)); try trivial)
+syntax "reflect_leading_coeff_trying" : tactic
+macro_rules
+  | `(tactic| reflect_leading_coeff_trying) =>
+    `(tactic| reflect_leading_coeff_trying <:> ( try_reg ))
 
 syntax "reflect_eval" : tactic
 macro_rules
   | `(tactic| reflect_eval) =>
-    `(tactic| apply Polynomial.Eval.isEqAt)
+    `(tactic| apply Eq.trans (Polynomial.Eval.isEqAt _); try trivial)
+
+syntax "reflect_expand" : tactic
+macro_rules
+  | `(tactic| reflect_expand) =>
+    `(tactic| apply Eq.trans (Polynomial.Coeffs.expand _).property; (try simp); unfold_expand_aux; (try simp))
+
+syntax "reflect_degree_eq_of_coeffs" : tactic
+macro_rules
+  | `(tactic| reflect_degree_eq_of_coeffs) =>
+    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (Polynomial.degreeEq_of_coeffs _)); try trivial)
+
+syntax "reflect_leading_coeff_of_coeffs" : tactic
+macro_rules
+  | `(tactic| reflect_leading_coeff_of_coeffs) =>
+    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (Polynomial.leadingCoeff_of_coeffs _)); try trivial)

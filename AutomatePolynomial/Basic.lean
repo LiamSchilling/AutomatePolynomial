@@ -1,4 +1,4 @@
 import AutomatePolynomial.Reflection.Lemmas
-import AutomatePolynomial.Util.Tactics
+import AutomatePolynomial.Reflection.MvLemmas
 
 def hello := "world"

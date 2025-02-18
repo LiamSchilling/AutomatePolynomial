@@ -1,5 +1,4 @@
 import AutomatePolynomial.Reflection.MvLemmas
-import AutomatePolynomial.Util.Tactics
 
 open MvPolynomial
 
