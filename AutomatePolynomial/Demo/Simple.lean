@@ -87,7 +87,7 @@ example [Nontrivial R] : (1 + X : R[X]).degree = 1 :=
   DegreeEq.isEq
 
 example [Nontrivial R] [NeZero (1 + 1 : R)] : (X + X : R[X]).degree = 1 :=
-  let _ : DegreeEq (X + X : R[X]) := by infer_instance_supposing [ ]
+  let _ : DegreeEq (X + X : R[X]) := by infer_instance_trying
   DegreeEq.isEq
 
 end DegreeEq
@@ -123,7 +123,7 @@ example [Nontrivial R] : (1 + X : R[X]).leadingCoeff = 1 :=
   LeadingCoeff.isEq
 
 example [Nontrivial R] [NeZero (1 + 1 : R)] : (X + X : R[X]).leadingCoeff = 1 + 1 :=
-  let _ : LeadingCoeff (X + X : R[X]) := by infer_instance_supposing [ ]
+  let _ : LeadingCoeff (X + X : R[X]) := by infer_instance_trying
   LeadingCoeff.isEq
 
 end LeadingCoeff

@@ -71,3 +71,10 @@ elab "infer_instance_supposing" "[" ts:term,* "]" : tactic => do
 -- trying a provided tactic to resolve those that fail
 elab "infer_instance_trying" "<:>" t:tactic : tactic => do
   (← getMainGoal).synthInstanceTrying t
+
+-- recursively synthesize type class instances
+-- slightly stronger than normal inferInstance
+syntax "infer_instance_trying" : tactic
+macro_rules
+  | `(tactic| infer_instance_trying) =>
+    `(tactic| infer_instance_trying <:> ( skip ) )
