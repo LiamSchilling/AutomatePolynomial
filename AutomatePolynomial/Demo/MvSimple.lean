@@ -14,7 +14,7 @@ example : (X j : MvPolynomial σ R).degreeOf i ≤ 1 := MvDegreeLe.isLe
 
 variable {j i : σ} in
 example (h : j ≠ i) : (X j : MvPolynomial σ R).degreeOf i ≤ 0 :=
-  let _ : MvDegreeLe (X j : MvPolynomial σ R) i := by infer_instance_trying <:> ( trivial )
+  let _ : MvDegreeLe (X j : MvPolynomial σ R) i := by infer_instance_trying
   MvDegreeLe.isLe
 
 -- base cases with explicit index set (for DecidableEq)
@@ -27,12 +27,12 @@ example : (X true  : MvPolynomial Bool R).degreeOf true  ≤ 1 := MvDegreeLe.isL
 
 variable {j i : σ} in
 example (h : j ≠ i) : (X j ^ 3 * X i ^ 2 : MvPolynomial σ R).degreeOf i ≤ 2 :=
-  let _ : MvDegreeLe (X j ^ 3 * X i ^ 2 : MvPolynomial σ R) i := by infer_instance_trying <:> ( trivial )
+  let _ : MvDegreeLe (X j ^ 3 * X i ^ 2 : MvPolynomial σ R) i := by infer_instance_trying
   sorry
 
 variable {j i : σ} in
 example (h : j ≠ i) : (X j ^ 3 + X i ^ 2 : MvPolynomial σ R).degreeOf i ≤ 2 :=
-  let _ : MvDegreeLe (X j ^ 2 + X i ^ 2 : MvPolynomial σ R) i := by infer_instance_trying <:> ( trivial )
+  let _ : MvDegreeLe (X j ^ 2 + X i ^ 2 : MvPolynomial σ R) i := by infer_instance_trying
   sorry
 
 end DegreeLe
