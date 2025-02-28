@@ -1,194 +1,169 @@
-import Mathlib.Data.List.Defs
-import Mathlib.Order.Defs.LinearOrder
+import AutomatePolynomial.Util.WithBot
+import Mathlib.Data.Tree.Basic
 
-import Mathlib.Algebra.MvPolynomial.Variables
-import Mathlib.Data.Nat.Order.Lemmas
+inductive Hyperlist (α : Type*) where
+| mk : α → Tree α → Hyperlist α
 
--- n-dimensional list structure
-def Hyperlist (α : Type*) (n : ℕ) :=
-  match n with
-  | 0 => α
-  | n + 1 => List (Hyperlist α n)
+open Tree Hyperlist
 
-@[simp] def hl0 : α → Hyperlist α 0 := by unfold Hyperlist; exact id
-@[simp] def hl0' : Hyperlist α 0 → α := by unfold Hyperlist; exact id
-@[simp] def hlc : List (Hyperlist α n) → Hyperlist α (n + 1) := by rw[Hyperlist]; exact id
-@[simp] def hlc' : Hyperlist α (n + 1) → List (Hyperlist α n) := by rw[Hyperlist]; exact id
+variable {α β γ σ : Type*}
+
+namespace Tree
+
+@[simp]
+def step : Tree α → Option (Hyperlist α)
+| nil => none
+| node a TL _ => some (mk a TL)
+
+@[simp]
+def slice : Tree α → Tree α
+| nil => nil
+| node _ _ DM => DM
+
+---------
+
+@[simp]
+def length : Tree α → ℕ
+| nil => 0
+| node _ TL _ => TL.length + 1
+
+@[simp]
+def replicate : ℕ → α → Tree α
+| 0, _ => nil
+| n + 1, a => node a (replicate n a) nil
+
+@[simp]
+def append : Tree α → Tree α → Tree α
+| nil, T => T
+| node a TL DM, T => node a (TL.append T) DM
+
+@[simp]
+def extend : Tree α → ℕ → α → Tree α
+| T, n, a₀ => T.append (replicate (n - T.length) a₀)
+
+@[simp]
+def match_extend (T1 : Tree α) (T2 : Tree β) (a₀ : α) (b₀ : β) :=
+  let len := max T1.length T2.length
+  (T1.extend len a₀, T2.extend len b₀)
+
+end Tree
 
 namespace Hyperlist
 
--- minimal hyperlist
 @[simp]
-instance zero [Zero α] : Zero (Hyperlist α n) where
-  zero :=
-  match n with
-  | 0 => hl0 0
-  | _ + 1 => []
+def step : Hyperlist α → Option (Hyperlist α)
+| mk _ T => T.step
 
--- reverse in every dimension
 @[simp]
-def reverse (L : Hyperlist α n) : Hyperlist α n :=
-  match n with
-  | 0 => L
-  | _ + 1 => (L.map reverse).reverse
+def slice : Hyperlist α → Hyperlist α
+| mk a T => mk a T.slice
 
--- map hyperlist by elements
 @[simp]
-def map (f : α → β) (L : Hyperlist α n) : Hyperlist β n :=
-  match n with
-  | 0 => f L
-  | _ + 1 => List.map (map f) L
+def node : Option (Hyperlist α) → Hyperlist α → Hyperlist α
+| none, mk a DM => mk a DM
+| some (mk a_ TL), mk a DM => mk a (Tree.node a_ TL DM)
 
--- length of outermost dimension
--- none if dimension is 0
 @[simp]
-def length (L : Hyperlist α n) :=
-  match n with
-  | 0 => none
-  | _ + 1 => some (List.length L)
+def map_node
+    (f : Hyperlist α → Hyperlist β)
+    (g : Hyperlist α → Hyperlist β)
+    (L : Hyperlist α) :=
+  node (Option.map f L.step) (g L.slice)
 
--- list with the length of all lists at each layer
--- none if layers have lists with non-uniform lengths
-def dimension (L : Hyperlist α n) :=
-  match n with
-  | 0 => some []
-  | n + 1 =>
-  match L with
-  | [] => some (List.replicate (n + 1) 0)
-  | A :: L =>
-  match dimension A with
-  | none => none
-  | some D =>
-  match L.all (some D = dimension .) with
-  | false => none
-  | true => some ((A :: L).length :: D)
-
--- list with length of list down head path at each layer
-def head_dimension (L : Hyperlist α n) :=
-  match n with
-  | 0 => []
-  | n + 1 =>
-  match L with
-  | [] => List.replicate (n + 1) 0
-  | A :: L => (A :: L).length :: head_dimension A
-
--- dimension is well-defined, all lists at each layer have uniform length
-def uniform (L : Hyperlist T n) := L.dimension.isSome
-
--- in a uniform hyperlist
--- computing dimension with checks is the same as computing it down the head
-lemma dimension_eq_of_uniform {L : Hyperlist α n} :
-    uniform L → dimension L = some (head_dimension L) := by
-  unfold uniform; unfold dimension; unfold head_dimension
-  cases n <;> dsimp; . intro; rfl
-  cases L <;> dsimp; . intro; rfl
-  cases h : dimension _ <;> dsimp; . intro; contradiction
-  cases List.all _ (some _ = dimension .) <;> dsimp; . intro; contradiction
-  simp; apply Option.some_inj.mp; rw[←h]
-  apply dimension_eq_of_uniform; unfold uniform; rw[h]; trivial
-
--- access with list of indices by layer
--- none if length does not match or an index of out-of-bounds
 @[simp]
-def get? (L : Hyperlist α n) (I : List ℕ) : Option α :=
-  match n, I with
-  | 0, [] => some L
-  | _ + 1, i :: I => (Option.map (get? . I) (List.get? L i)).getD none
-  | _, _ => none
+def zip_node
+    (f : Hyperlist α → Hyperlist β → Hyperlist γ)
+    (g : Hyperlist α → Hyperlist β → Hyperlist γ)
+    (L1 : Hyperlist α) (L2 : Hyperlist β) :=
+  node (Option.zip f L1.step L2.step) (g L1.slice L2.slice)
 
--- if access works, then index list length is hyperlist dimension
-lemma length_eq_of_get_some {L : Hyperlist α n} :
-    (get? L I).isSome → I.length = n := by
-  unfold Option.isSome; unfold get?
-  cases n; . intro; cases I; rfl; contradiction
-  cases I <;> dsimp; . intro; contradiction
-  cases List.get? L _ <;> dsimp; . intro; contradiction
-  cases h : get? _ _ <;> dsimp; . intro; contradiction
-  simp
-  apply length_eq_of_get_some; rw[h]; trivial
+----------
+
+@[simp]
+def get_head : Hyperlist α → α
+| mk a _ => a
+
+@[simp]
+def get_step? (L : Hyperlist α) (i : ℕ) :=
+  Fin.foldrM i (fun _ acc => acc.step) L
+
+@[simp]
+def get_slice? (L : Hyperlist α) (is : List ℕ) :=
+  List.foldlM (fun acc i => Option.map slice (acc.get_step? i)) L is
+
+@[simp]
+def get? (L : Hyperlist α) (is : List ℕ) :=
+  Option.map get_head (L.get_slice? is)
+
+----------
+
+@[simp]
+def pred_length : Hyperlist α → ℕ
+| mk _ T => T.length
+
+@[simp]
+def length : Hyperlist α → ℕ
+| L => L.pred_length.succ
+
+@[simp]
+def map : (α → β) → Hyperlist α → Hyperlist β
+| f, mk a T => mk (f a) (T.map f)
+
+@[simp]
+def replicate : ℕ → α → Hyperlist α
+| n, a => mk a (Tree.replicate n a)
+
+@[simp]
+def append : Hyperlist α → Tree α → Hyperlist α
+| mk a T1, T2 => mk a (T1.append T2)
+
+@[simp]
+def extend_succ : Hyperlist α → ℕ → α → Hyperlist α
+| mk a T, n, a₀ => mk a (T.extend n a₀)
+
+@[simp]
+def extend : Hyperlist α → ℕ → α → Hyperlist α
+| L, n, a₀ => L.extend_succ n.pred a₀
+
+@[simp]
+def match_extend (L1 : Hyperlist α) (L2 : Hyperlist β) (a₀ : α) (b₀ : β) :=
+  let pred_len := max L1.pred_length L2.pred_length
+  (L1.extend_succ pred_len a₀, L2.extend_succ pred_len b₀)
+
+@[simp]
+def zipWith :
+    (Hyperlist α → Hyperlist β → Hyperlist γ) →
+    Hyperlist α → Hyperlist β →
+    Hyperlist γ
+| f, mk a (Tree.node a_ TL1 DM1), mk b (Tree.node b_ TL2 DM2) =>
+  let ⟨c_, TL⟩ := zipWith f (mk a_ TL1) (mk b_ TL2)
+  let ⟨c, DM⟩ := f (mk a DM1) (mk b DM2)
+  mk c (Tree.node c_ TL DM)
+| f, mk a _, mk b _ => mk (f (mk a nil) (mk b nil)).get_head nil
+
+@[simp]
+def match_zipWith
+    (f : Hyperlist α → Hyperlist β → Hyperlist γ)
+    (T1 : Hyperlist α) (T2 : Hyperlist β)
+    (a₀ : α) (b₀ : β) :=
+  let (T1, T2) := match_extend T1 T2 a₀ b₀
+  zipWith f T1 T2
+
+@[simp]
+def merge_and_match_zipWith
+    (f : α → β → γ)
+    (I1 I2:  List σ)
+    (L1 : Hyperlist α) (L2 : Hyperlist β)
+    (a₀ : α) (b₀ : β)
+    (cmp : σ → σ → Ordering := by exact fun a b => compare a b) :=
+  match I1, I2 with
+  | [], [] => mk (f L1.get_head L2.get_head) nil
+  | [], _ :: I => map_node (map (f a₀ .)) (merge_and_match_zipWith f [] I L1 . a₀ b₀ cmp) L2
+  | _ :: I, [] => map_node (map (f . b₀)) (merge_and_match_zipWith f I [] . L2 a₀ b₀ cmp) L1
+  | i1 :: I1, i2 :: I2 =>
+  match cmp i1 i2 with
+  | .lt => map_node (map (f . b₀)) (merge_and_match_zipWith f I1 (i2 :: I2) . L2 a₀ b₀ cmp) L1
+  | .gt => map_node (map (f a₀ .)) (merge_and_match_zipWith f (i1 :: I1) I2 L1 . a₀ b₀ cmp) L2
+  | .eq => match_zipWith (merge_and_match_zipWith f I1 I2 . . a₀ b₀ cmp) L1 L2 a₀ b₀
 
 end Hyperlist
-
-section Merge
-
-@[simp]
-def List.merge_nodups
-  [LinearOrder α]
-  (is1 is2 : List α) :
-  List α :=
-  match is1, is2 with
-  | [], is2 => is2
-  | is1, [] => is1
-  | i1 :: is1, i2 :: is2 =>
-  match compare i1 i2 with
-  | .lt => i1 :: merge_nodups is1 (i2 :: is2)
-  | .gt => i2 :: merge_nodups (i1 :: is1) is2
-  | .eq => i1 :: merge_nodups is1 is2
-
-lemma List.merge_comm [LinearOrder α] {as1 as2 : List α} : merge_nodups as1 as2 = merge_nodups as2 as1 := by sorry
-lemma List.merge_nil [LinearOrder α] {as : List α} : merge_nodups [] as = as := by simp
-lemma List.merge_nil' [LinearOrder α] {as : List α} : merge_nodups as [] = as := by rw[merge_comm]; simp
-
-@[simp]
-def List.zipWith_zeros
-    [Zero α] [Zero β]
-    (f : α → β → γ)
-    (as : List α) (bs : List β) :
-    List γ :=
-  let aL := as.length
-  let bL := bs.length
-  let as := as ++ replicate (max aL bL - aL) 0
-  let bs := bs ++ replicate (max aL bL - bL) 0
-  zipWith f as bs
-
-@[simp]
-def Hyperlist.merge_nodups_for_zipWith_zeros
-    [LinearOrder σ] [Zero α] [Zero β]
-    (is1 is2 : List σ)
-    (f : α → β → γ)
-    (as : Hyperlist α is1.length) (bs : Hyperlist β is2.length) :
-    Hyperlist γ (List.merge_nodups is1 is2).length := by
-  match is1, is2 with
-  | [], [] => simp; exact f as bs
-  | [], i2 :: is2 =>
-    match bs with
-    | [] => rw[List.merge_nil]; exact hlc []
-    | b :: bs => rw[List.merge_nil]; apply hlc'; exact (by rw[←@List.merge_nil _ _ is2]; exact merge_nodups_for_zipWith_zeros [] is2 f as b) :: Hyperlist.map (f 0) (hlc bs)
-  | i1 :: is1, [] =>
-    match as with
-    | [] => rw[List.merge_nil']; exact hlc []
-    | a :: as => rw[List.merge_nil']; apply hlc'; exact (by rw[←@List.merge_nil' _ _ is1]; exact merge_nodups_for_zipWith_zeros is1 [] f a bs) :: Hyperlist.map (fun x => f x 0) (hlc as)
-  | i1 :: is1, i2 :: is2 =>
-  match h1 : as.length, h2 : bs.length with
-  | none, _ => contradiction
-  | _, none => contradiction
-  | some aL, some bL =>
-  match h : compare i1 i2 with
-  | .lt =>
-    unfold List.merge_nodups; rw[h]
-    exact List.map (merge_nodups_for_zipWith_zeros is1 (i2 :: is2) f . bs) as
-  | .gt =>
-    unfold List.merge_nodups; rw[h]
-    exact List.map (merge_nodups_for_zipWith_zeros (i1 :: is1) is2 f as .) bs
-  | .eq =>
-    unfold List.merge_nodups; rw[h]
-    exact List.zipWith_zeros (merge_nodups_for_zipWith_zeros is1 is2 f . .) as bs
-
-@[simp]
-noncomputable def Hyperlist.expand [Semiring γ] (C : R → γ) (X : σ → γ) :
-  (is : List σ) → (cs : Hyperlist R is.length) →
-  (n : Option ℕ) → cs.length = n → γ
-| [], cs, _, _ => C cs
-| i :: is, [], _, _ => 0
-| i :: is, c :: cs, none, _ => by contradiction
-| i :: is, c :: cs, some n, h =>
-  expand C X (i :: is) cs (some n.pred) (
-    Option.some_inj.mpr (
-      Nat.pred_eq_of_eq_succ (Option.some_inj.mp h).symm ).symm ) +
-  X i ^ n.pred * expand C X is c c.length rfl
-termination_by is cs => (is.length, cs.length)
-decreasing_by
-. apply Prod.Lex.right; apply lt_add_one
-. apply Prod.Lex.left; simp
-
-end Merge
