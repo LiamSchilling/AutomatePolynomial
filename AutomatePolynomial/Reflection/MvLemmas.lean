@@ -5,7 +5,7 @@ import AutomatePolynomial.Util.Tactics
 syntax "reflect_coeff" : tactic
 macro_rules
   | `(tactic| reflect_coeff) =>
-    `(tactic| rw[MvPolynomial.MvCoeffs.isEqAt _]; simp [compare, compareOfLessAndEq, cast_eq_iff_heq, List.heq_of])
+    `(tactic| rw[MvPolynomial.MvCoeffs.isEqAt _]; simp [Fin.foldrM, Fin.foldrM.loop])
 
 syntax "reflect_mv_degree_le" : tactic
 macro_rules

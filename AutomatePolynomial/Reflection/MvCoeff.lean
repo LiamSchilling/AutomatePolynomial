@@ -1,5 +1,7 @@
 import AutomatePolynomial.Util.MvPolynomial
 
+open Tree
+
 namespace MvPolynomial
 
 variable [CommSemiring R] [LinearOrder σ]
@@ -7,7 +9,7 @@ variable [CommSemiring R] [LinearOrder σ]
 -- compute polynomial coefficients
 class MvCoeffs (p : MvPolynomial σ R) where
   I : List σ
-  C : Hyperlist R I.length
+  C : Hyperlist R
   isSorted : I.Pairwise (. < .)
   isSupported : p.vars ⊆ ⟨I, List.Pairwise.imp ne_of_lt isSorted⟩
   isEqAt : ∀ m, p.coeff m = (C.get? (I.map m)).getD 0
@@ -16,14 +18,14 @@ class MvCoeffs (p : MvPolynomial σ R) where
 -- computes abstract polynomial (c0 + c1*x + ... cn*x^n)
 @[simp]
 noncomputable def MvCoeffs.expand (p : MvPolynomial σ R) [MvCoeffs p] : { q // p = q } :=
-  ⟨ Hyperlist.expand MvPolynomial.C X (MvCoeffs.I p) (MvCoeffs.C).reverse (MvCoeffs.C).reverse.length rfl, sorry ⟩
+  ⟨ Hyperlist.expand MvPolynomial.C X (MvCoeffs.I p) (MvCoeffs.C p) 0, sorry ⟩
 
 section MvCoeffs
 
 @[simp]
 instance instMvCoeffsZero : MvCoeffs (0 : MvPolynomial σ R) where
   I := []
-  C := hl0 0
+  C := ⟨0, nil⟩
   isSorted := by simp
   isSupported := by trivial
   isEqAt := by intro; rfl
@@ -31,7 +33,7 @@ instance instMvCoeffsZero : MvCoeffs (0 : MvPolynomial σ R) where
 @[simp]
 instance instMvCoeffsOne : MvCoeffs (1 : MvPolynomial σ R) where
   I := []
-  C := hl0 1
+  C := ⟨1, nil⟩
   isSorted := by simp
   isSupported := sorry
   isEqAt := sorry
@@ -39,7 +41,7 @@ instance instMvCoeffsOne : MvCoeffs (1 : MvPolynomial σ R) where
 @[simp]
 instance instMvCoeffsC : MvCoeffs (C c : MvPolynomial σ R) where
   I := []
-  C := hl0 c
+  C := ⟨c, nil⟩
   isSorted := by simp
   isSupported := sorry
   isEqAt := sorry
@@ -47,7 +49,7 @@ instance instMvCoeffsC : MvCoeffs (C c : MvPolynomial σ R) where
 @[simp]
 instance instMvCoeffsX : MvCoeffs (X i : MvPolynomial σ R) where
   I := [i]
-  C := [ hl0 0, hl0 1 ]
+  C := ⟨0, node 1 nil nil⟩
   isSorted := by simp
   isSupported := sorry
   isEqAt := sorry
@@ -56,7 +58,7 @@ variable (p q : MvPolynomial σ R) [P : MvCoeffs p] [Q : MvCoeffs q]
 @[simp]
 instance instMvCoeffAdd : MvCoeffs (p + q : MvPolynomial σ R) where
   I := List.merge_nodups P.I Q.I
-  C := Hyperlist.merge_nodups_for_zipWith_zeros P.I Q.I (. + .) P.C.reverse Q.C.reverse
+  C := Hyperlist.merge_and_match_zipWith (. + .) P.I Q.I P.C Q.C 0 0
   isSorted := sorry
   isSupported := sorry
   isEqAt := sorry

@@ -1,12 +1,32 @@
 import AutomatePolynomial.Util.WithBot
 import Mathlib.Data.Tree.Basic
 
+import Mathlib.Algebra.MvPolynomial.Variables
+
 inductive Hyperlist (α : Type*) where
 | mk : α → Tree α → Hyperlist α
 
 open Tree Hyperlist
 
 variable {α β γ σ : Type*}
+
+namespace List
+
+@[simp]
+def merge_nodups
+    (L1 : List σ) (L2 : List σ)
+    (cmp : σ → σ → Ordering := by exact fun a b => compare a b) :=
+  match L1, L2 with
+  | [], [] => []
+  | [], I => I
+  | I, [] => I
+  | i1 :: I1, i2 :: I2 =>
+  match cmp i1 i2 with
+  | .lt => i1 :: merge_nodups I1 (i2 :: I2) cmp
+  | .gt => i2 :: merge_nodups (i1 :: I2) I2 cmp
+  | .eq => i1 :: merge_nodups I1 I2 cmp
+
+end List
 
 namespace Tree
 
@@ -152,7 +172,7 @@ def match_zipWith
 @[simp]
 def merge_and_match_zipWith
     (f : α → β → γ)
-    (I1 I2:  List σ)
+    (I1 I2 :  List σ)
     (L1 : Hyperlist α) (L2 : Hyperlist β)
     (a₀ : α) (b₀ : β)
     (cmp : σ → σ → Ordering := by exact fun a b => compare a b) :=
@@ -166,4 +186,24 @@ def merge_and_match_zipWith
   | .gt => map_node (map (f a₀ .)) (merge_and_match_zipWith f (i1 :: I1) I2 L1 . a₀ b₀ cmp) L2
   | .eq => match_zipWith (merge_and_match_zipWith f I1 I2 . . a₀ b₀ cmp) L1 L2 a₀ b₀
 
+-- given coefficients
+-- [ ... [ [ c###00, ... c###0K ], ... [ c###M0, c###MK ] ] ... ]
+-- computes abstract polynomial
+-- ( ... #^# * ( m^M * ( k^K * c###MK + ... c###M0 ) + ... ( k^K * c###0K + ... c###00 ) ) ... )
+noncomputable def expand
+    [Pow γ ℕ] [Mul γ] [Add γ]
+    (C : R → γ) (X : σ → γ)
+    (is : List σ) (cs : Hyperlist R)
+    (n : ℕ) :=
+  match is, cs with
+  | [], mk c _ => C c
+  | i :: is, mk c (.nil) => X i ^ n * expand C X is (mk c nil) 0
+  | i :: is, mk c (.node c_ TL DM) => expand C X (i :: is) (mk c_ TL) n.succ + X i ^ n * expand C X is (mk c DM) 0
+
 end Hyperlist
+
+-- fully unfold expand call
+syntax "unfold_hl_expand" : tactic
+macro_rules
+  | `(tactic| unfold_hl_expand) =>
+    `(tactic| repeat unfold Hyperlist.expand)
