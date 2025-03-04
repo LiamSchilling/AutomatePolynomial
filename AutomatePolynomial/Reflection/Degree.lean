@@ -1,5 +1,4 @@
 import AutomatePolynomial.Util.Polynomial
-import AutomatePolynomial.Util.WithBot
 
 namespace Polynomial
 

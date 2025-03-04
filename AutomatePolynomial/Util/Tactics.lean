@@ -2,9 +2,7 @@ import Lean
 
 open Lean Meta Elab Tactic
 
-namespace Lean
-
-namespace MVarId
+namespace Lean.MVarId
 
 -- recursively synthesize type class instances,
 -- trying a provided tactic to resolve those that fail
@@ -36,9 +34,7 @@ def synthInstanceTrying (goal : MVarId) (tactic : Syntax) (d : Nat := 8) :
         restoreState state
     throwError "failed to synthesize instance"
 
-end MVarId
-
-end Lean
+end Lean.MVarId
 
 -- recursively synthesize type class instances,
 -- trying a provided tactic to resolve those that fail
@@ -50,7 +46,11 @@ elab "infer_instance_trying" "<:>" t:tactic : tactic => do
 syntax "try_reg" : tactic
 macro_rules
   | `(tactic| try_reg) =>
-    `(tactic| (try simp) <;> (try trivial) <;> (try constructor) <;> (try simp) )
+    `(tactic|
+      (try simp) <;>
+      (try trivial) <;>
+      (try constructor) <;>
+      (try simp) )
 
 -- recursively synthesize type class instances
 -- slightly stronger than normal inferInstance

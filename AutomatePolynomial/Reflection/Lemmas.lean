@@ -28,7 +28,7 @@ end Polynomial
 syntax "reflect_coeff" : tactic
 macro_rules
   | `(tactic| reflect_coeff) =>
-    `(tactic| rw[Polynomial.Coeffs.isEq]; simp)
+    `(tactic| rw[Polynomial.Coeffs.isEqAt _]; simp)
 
 syntax "reflect_degree_le" : tactic
 macro_rules
