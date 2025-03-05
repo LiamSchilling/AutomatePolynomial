@@ -7,7 +7,13 @@ lemma length_extend
     {L : List α} :
     (extend L N a₀).length =
     max L.length N := by
-  simp; sorry
+  simp
+  cases inferInstanceAs (Decidable (L.length ≤ N)) <;> rename_i h
+  . simp at h
+    rw[Nat.max_eq_left (le_of_lt h)]
+    rw[Nat.sub_eq_zero_of_le (le_of_lt h)]; rfl
+  . rw[Nat.max_eq_right h]
+    rw[Nat.add_sub_of_le h]
 
 lemma getElem?_extend
     {n : ℕ} {L : List α} :
@@ -26,7 +32,9 @@ lemma getElem?_extend
     . rw[if_pos h2]
       unfold extend; rw[getElem?_append_right]
       rw[getElem?_replicate_of_lt]
-      sorry
+      apply Nat.sub_lt_sub_right
+      . apply getElem?_eq_none_iff.mp; assumption
+      . assumption
       apply getElem?_eq_none_iff.mp; assumption
   . unfold extend; rw[getElem?_append_left]
     assumption

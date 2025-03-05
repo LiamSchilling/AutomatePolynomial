@@ -27,8 +27,12 @@ def repLeading {p : R[X]} (T : Coeffs p) :=
 
 -- see expandAux spec
 @[simp]
-noncomputable def expand (p : R[X]) [Coeffs p] : { q // p = q } :=
-  ⟨ expandAux (Coeffs.C p) 0, sorry ⟩
+noncomputable def expand (p : R[X]) [Coeffs p] : { q // p = q } := ⟨
+  expandAux (Coeffs.C p) 0,
+  by
+    apply expandAux_eq
+    . intros; contradiction
+    . simp; apply Coeffs.isEqAt ⟩
 
 -- drops leading zeros with proof of minimality
 variable [DecidablePred (Eq 0 : R → Prop)] in
