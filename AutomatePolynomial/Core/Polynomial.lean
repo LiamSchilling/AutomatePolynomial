@@ -1,4 +1,4 @@
-import AutomatePolynomial.Util.Hyperlist
+import AutomatePolynomial.Hyperlist.Lemmas
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
 
 namespace Polynomial.Coeffs
@@ -9,6 +9,13 @@ variable [Semiring R]
 @[simp]
 def addAux (cs1 cs2 : List R) :=
   List.match_zipWith (. + .) cs1 cs2 0 0
+
+lemma addAux_eq
+    {n : ℕ} {cs1 cs2 : List R} :
+    (addAux cs1 cs2)[n]?.getD 0 =
+    cs1[n]?.getD 0 + cs2[n]?.getD 0 := by
+  nth_rw 1 [←show 0 + 0 = (0 : R) by simp]
+  apply List.getElem?_getD_match_zipWith
 
 -- multiply coefficient lists
 @[simp]

@@ -1,4 +1,4 @@
-import AutomatePolynomial.Util.Polynomial
+import AutomatePolynomial.Core.Polynomial
 
 namespace Polynomial
 

@@ -1,10 +1,10 @@
 import AutomatePolynomial.Reflection.MvCoeff
 import AutomatePolynomial.Reflection.MvDegree
-import AutomatePolynomial.Util.Tactics
+import AutomatePolynomial.Tactic.InferInstance
 
-syntax "reflect_coeff" : tactic
+syntax "reflect_mv_coeff" : tactic
 macro_rules
-  | `(tactic| reflect_coeff) =>
+  | `(tactic| reflect_mv_coeff) =>
     `(tactic| rw[MvPolynomial.MvCoeffs.isEqAt _]; simp [Fin.foldrM, Fin.foldrM.loop])
 
 syntax "reflect_mv_degree_le" : tactic

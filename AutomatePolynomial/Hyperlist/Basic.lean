@@ -1,4 +1,4 @@
-import AutomatePolynomial.Util.WithBot
+import AutomatePolynomial.WithBot.Basic
 import Mathlib.Data.Tree.Basic
 
 -- representation of unbounded tensors

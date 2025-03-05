@@ -1,7 +1,7 @@
 import AutomatePolynomial.Reflection.Coeff
 import AutomatePolynomial.Reflection.Degree
 import AutomatePolynomial.Reflection.Eval
-import AutomatePolynomial.Util.Tactics
+import AutomatePolynomial.Tactic.InferInstance
 
 namespace Polynomial
 

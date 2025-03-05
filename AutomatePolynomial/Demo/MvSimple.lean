@@ -7,15 +7,15 @@ section MvCoeffs
 variable [CommSemiring R]
 
 -- base cases
-example : (0 : MvPolynomial ℕ R).coeff 0 = 0   := by reflect_coeff; infer_instance
-example : (1 : MvPolynomial ℕ R).coeff 0 = 1   := by reflect_coeff; infer_instance
-example : (C 0 : MvPolynomial ℕ R).coeff 0 = 0 := by reflect_coeff; infer_instance
-example : (C 1 : MvPolynomial ℕ R).coeff 0 = 1 := by reflect_coeff; infer_instance
-example : (X 0 : MvPolynomial ℕ R).coeff (Finsupp.single 0 1) = 1 := by reflect_coeff; infer_instance
+example : (0 : MvPolynomial ℕ R).coeff 0 = 0   := by reflect_mv_coeff; infer_instance
+example : (1 : MvPolynomial ℕ R).coeff 0 = 1   := by reflect_mv_coeff; infer_instance
+example : (C 0 : MvPolynomial ℕ R).coeff 0 = 0 := by reflect_mv_coeff; infer_instance
+example : (C 1 : MvPolynomial ℕ R).coeff 0 = 1 := by reflect_mv_coeff; infer_instance
+example : (X 0 : MvPolynomial ℕ R).coeff (Finsupp.single 0 1) = 1 := by reflect_mv_coeff; infer_instance
 -- closure cases
 
 -- Why does this work without LinearCoeff??
-example : (X 1 + 1 : MvPolynomial ℕ R).coeff 0 = 1 := by reflect_coeff
+example : (X 1 + 1 : MvPolynomial ℕ R).coeff 0 = 1 := by reflect_mv_coeff
 
 end MvCoeffs
 

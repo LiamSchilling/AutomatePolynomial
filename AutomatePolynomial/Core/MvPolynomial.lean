@@ -1,4 +1,4 @@
-import AutomatePolynomial.Util.Hyperlist
+import AutomatePolynomial.Hyperlist.Lemmas
 import Mathlib.Algebra.MvPolynomial.Variables
 
 namespace MvPolynomial.MvCoeffs

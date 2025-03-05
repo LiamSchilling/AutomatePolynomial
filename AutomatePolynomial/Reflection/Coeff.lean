@@ -1,4 +1,4 @@
-import AutomatePolynomial.Util.Polynomial
+import AutomatePolynomial.Core.Polynomial
 
 namespace Polynomial
 
@@ -7,7 +7,7 @@ variable [Semiring R]
 -- compute polynomial coefficients
 class Coeffs (p : R[X]) where
   C : List R
-  isEqAt : ∀ n, p.coeff n = (C.get? n).getD 0
+  isEqAt : ∀ n, p.coeff n = C[n]?.getD 0
 
 namespace Coeffs
 
@@ -116,7 +116,10 @@ variable (p q : R[X]) [Coeffs p] [Coeffs q] in
 @[simp]
 instance instCoeffsAdd : Coeffs (p + q) where
   C := Coeffs.addAux (Coeffs.C p) (Coeffs.C q)
-  isEqAt := sorry
+  isEqAt := by
+    intro
+    rw[Coeffs.addAux_eq, ←Coeffs.isEqAt, ←Coeffs.isEqAt]
+    simp
 
 end Coeffs
 

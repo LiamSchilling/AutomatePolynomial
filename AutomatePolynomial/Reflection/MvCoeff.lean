@@ -1,4 +1,4 @@
-import AutomatePolynomial.Util.MvPolynomial
+import AutomatePolynomial.Core.MvPolynomial
 
 namespace MvPolynomial
 
