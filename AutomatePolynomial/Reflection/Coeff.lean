@@ -106,14 +106,24 @@ variable (p : R[X]) [Coeffs p] in
 @[simp]
 instance instCoeffPow : Coeffs (p ^ n) where
   C := Coeffs.powAux n (Coeffs.C p)
-  isEqAt := sorry
+  isEqAt := by
+    intro
+    sorry
 
 -- compute coefficients of product
 variable (p q : R[X]) [Coeffs p] [Coeffs q] in
 @[simp]
 instance instCoeffMul : Coeffs (p * q) where
   C := Coeffs.mulAux (Coeffs.C p) (Coeffs.C q)
-  isEqAt := sorry
+  isEqAt := by
+    intro
+    rw[coeff_mul]
+    rw[Finset.Nat.sum_antidiagonal_eq_sum_range_succ (p.coeff . * q.coeff .)]
+    rw[Coeffs.mulAux_eq]
+    apply Finset.sum_congr
+    . rfl
+    . intro k _
+      rw[←Coeffs.isEqAt, ←Coeffs.isEqAt]
 
 -- compute coefficients of sum
 variable (p q : R[X]) [Coeffs p] [Coeffs q] in
@@ -122,7 +132,8 @@ instance instCoeffsAdd : Coeffs (p + q) where
   C := Coeffs.addAux (Coeffs.C p) (Coeffs.C q)
   isEqAt := by
     intro
-    rw[Coeffs.addAux_eq, ←Coeffs.isEqAt, ←Coeffs.isEqAt]
+    rw[Coeffs.addAux_eq]
+    rw[←Coeffs.isEqAt, ←Coeffs.isEqAt]
     simp
 
 end Coeffs

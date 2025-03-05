@@ -23,12 +23,52 @@ lemma addAux_eq
   nth_rw 1 [←show 0 + 0 = (0 : R) by simp]
   apply List.getElem?_getD_match_zipWith
 
+-- multiply by constant
+@[simp]
+def mulCAux (c : R) (cs : List R) :=
+  cs.map (c * .)
+
+lemma mulCAux_length
+    {c : R} {cs : List R} :
+    (mulCAux c cs).length =
+    cs.length := by
+  simp
+
+lemma mulCAux_eq
+    {n : ℕ} {c : R} {cs : List R} :
+    (mulCAux c cs)[n]?.getD 0 =
+    c * cs[n]?.getD 0 := by
+  simp
+  cases inferInstanceAs (Decidable (n < cs.length)) <;> rename_i h
+  . simp at h
+    rw[List.getElem?_eq_none]; simp; assumption
+  . rw[(List.getElem?_eq_some_getElem_iff _ _ h).mpr]; simp; trivial
+
+-- multiply by power of X
+@[simp]
+def mulXAux (cs : List R) :=
+  0 :: cs
+
+lemma mulXAux_length
+    {cs : List R} :
+    (mulXAux cs).length =
+    cs.length + 1 := by
+  simp
+
+lemma mulXAux_eq
+    {n : ℕ} {cs : List R} :
+    (mulXAux cs)[n]?.getD 0 =
+    match n with
+    | 0 => 0
+    | n + 1 => cs[n]?.getD 0 := by
+  cases n <;> simp
+
 -- multiply coefficient lists
 @[simp]
 def mulAux (cs1 cs2 : List R) :=
   match cs1 with
   | [] => List.replicate cs2.length.pred 0
-  | c :: cs1 => addAux (0 :: mulAux cs1 cs2) (cs2.map (c * .))
+  | c :: cs1 => addAux (mulXAux (mulAux cs1 cs2)) (mulCAux c cs2)
 
 lemma mulAux_length
     {cs1 cs2 : List R} :
@@ -37,7 +77,25 @@ lemma mulAux_length
   cases cs1
   . simp
   . unfold mulAux; rw[addAux_length]; simp; rw[mulAux_length]
-    sorry
+    rw[Nat.max_eq_left]
+    apply add_right_comm; rw[add_assoc]; apply le_add_left
+    apply Nat.le_add_of_sub_le; apply le_of_eq; rfl
+
+lemma mulAux_eq
+    {cs1 cs2 : List R} :
+    (mulAux cs1 cs2)[n]?.getD 0 =
+    ∑ k ∈ Finset.range (n + 1), cs1[k]?.getD 0 * cs2[n - k]?.getD 0 := by
+  cases cs1
+  . simp; rw[List.getElem?_replicate]
+    cases inferInstanceAs (Decidable (n < cs2.length - 1)) <;> rename_i h
+    . rw[if_neg h]; rfl
+    . rw[if_pos h]; rfl
+  . unfold mulAux; rw[addAux_eq, mulCAux_eq, mulXAux_eq]
+    cases n <;> (rename_i n; simp)
+    . rename_i head tail
+      rw[mulAux_eq, add_comm, Finset.range_eq_Ico]
+      --rw[←Finset.sum_eq_sum_Ico_succ_bot]
+      sorry
 
 -- power of a coefficient list
 @[simp]
@@ -53,7 +111,9 @@ lemma powAux_length
   cases n
   . simp
   . unfold powAux; rw[mulAux_length, powAux_length]
-    sorry
+    rw[add_comm, ←add_assoc]
+    nth_rw 2 [add_comm]
+    rw[mul_comm, ←Nat.mul_succ, mul_comm];
 
 -- given coefficients [c0, c1, ... cn]
 -- computes abstract polynomial (cn*x^n + ... c1*x + c0)
