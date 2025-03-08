@@ -209,60 +209,56 @@ instance instZero : Inhabited (T 0) :=
   ⟨SensitivePolynomialReflection.mk_zero⟩
 
 @[simp]
-instance instOne : Inhabited (T 1) :=
-  ⟨PolynomialReflection.mk_one⟩
-@[simp]
 instance instOneSns [Nontrivial R] : Inhabited (T 1) :=
   ⟨SensitivePolynomialReflection.mk_one_sns⟩
+@[simp]
+instance instOne : Inhabited (T 1) :=
+  ⟨PolynomialReflection.mk_one⟩
 
 @[simp]
-instance instCZero : Inhabited (T (C 0)) :=
-  ⟨SensitivePolynomialReflection.mk_C_zero⟩
+instance instCNonzero [NeZero c] : Inhabited (T (C c)) :=
+  ⟨SensitivePolynomialReflection.mk_C_nonzero⟩
 @[simp]
 instance instC : Inhabited (T (C c)) :=
   ⟨PolynomialReflection.mk_C⟩
 @[simp]
-instance instCNonzero [NeZero c] : Inhabited (T (C c)) :=
-  ⟨SensitivePolynomialReflection.mk_C_nonzero⟩
+instance instCZero : Inhabited (T (C 0)) :=
+  ⟨SensitivePolynomialReflection.mk_C_zero⟩
 
-@[simp]
-instance instX : Inhabited (T X) :=
-  ⟨PolynomialReflection.mk_X⟩
 @[simp]
 instance instXSns [Nontrivial R] : Inhabited (T X) :=
   ⟨SensitivePolynomialReflection.mk_X_sns⟩
-
 @[simp]
-instance instXPow : Inhabited (T (X ^ n)) :=
-  ⟨PolynomialReflection.mk_XPow n⟩
+instance instX : Inhabited (T X) :=
+  ⟨PolynomialReflection.mk_X⟩
+
 @[simp]
 instance instXPowSns [Nontrivial R] : Inhabited (T (X ^ n)) :=
   ⟨SensitivePolynomialReflection.mk_XPow_sns n⟩
-
 @[simp]
-instance instPow : Inhabited (T (p ^ n)) :=
-  match P with
-  | ⟨P⟩ => ⟨PolynomialReflection.mk_pow p n P⟩
+instance instXPow : Inhabited (T (X ^ n)) :=
+  ⟨PolynomialReflection.mk_XPow n⟩
+
 variable [LeadingCoeff p] [NeZero (leadingCoeffPow p n)] in
 @[simp]
 instance instPowSns : Inhabited (T (p ^ n)) :=
   match P with
   | ⟨P⟩ => ⟨SensitivePolynomialReflection.mk_pow_sns p n P⟩
-
 @[simp]
-instance instMul : Inhabited (T (p * q)) :=
-  match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialReflection.mk_mul p q P Q⟩
+instance instPow : Inhabited (T (p ^ n)) :=
+  match P with
+  | ⟨P⟩ => ⟨PolynomialReflection.mk_pow p n P⟩
+
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
 @[simp]
 instance instMulSns : Inhabited (T (p * q)) :=
   match P, Q with
   | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialReflection.mk_mul_sns p q P Q⟩
-
 @[simp]
-instance instAdd : Inhabited (T (p + q)) :=
+instance instMul : Inhabited (T (p * q)) :=
   match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialReflection.mk_add p q P Q⟩
+  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialReflection.mk_mul p q P Q⟩
+
 variable [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
 @[simp]
 instance instAddLeft : Inhabited (T (p + q)) :=
@@ -278,6 +274,10 @@ variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
 instance instAddBalanced : Inhabited (T (p + q)) :=
   match P, Q with
   | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialReflection.mk_add_balanced p q h P Q⟩
+@[simp]
+instance instAdd : Inhabited (T (p + q)) :=
+  match P, Q with
+  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialReflection.mk_add p q P Q⟩
 
 end Instances
 
