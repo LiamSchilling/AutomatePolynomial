@@ -27,8 +27,7 @@ def synthInstanceTrying (goal : MVarId) (tactic : Syntax) (d : Nat := 8) :
       let state ← saveState
       try
         let subgoals ← goal.apply inst.val { allowSynthFailures := true }
-        let _ ← subgoals.mapM (
-          fun subgoal => subgoal.synthInstanceTrying tactic d )
+        let _ ← subgoals.mapM (synthInstanceTrying . tactic d)
         return
       catch _ =>
         restoreState state

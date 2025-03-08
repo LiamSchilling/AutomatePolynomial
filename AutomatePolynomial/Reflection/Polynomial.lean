@@ -113,15 +113,18 @@ def leadingCoeff_of_normal (self : T p) : LeadingCoeff p :=
 
 -- system of polynomial class reflection
 -- rules may be sensitive to zero coefficients and thus cancellations
-class SensitivePolynomialReflection
+class SensitivePolynomialBaseReflection
     (R : Type*) [Semiring R] (T : R[X] → Type*) where
 
   mk_zero : T 0
   mk_one_sns [Nontrivial R] : T 1
   mk_C_zero : T (C 0)
-  mk_C_nonzero [NeZero c] : T (C c)
+  mk_C_nonzero c [NeZero c] : T (C c)
   mk_X_sns [Nontrivial R] : T X
   mk_XPow_sns [Nontrivial R] n : T (X ^ n)
+
+class SensitivePolynomialClosureReflection
+    (R : Type*) [Semiring R] (T : R[X] → Type*) where
 
   mk_pow_sns
       p [LeadingCoeff p] n [NeZero (leadingCoeffPow p n)] :
@@ -145,23 +148,27 @@ class SensitivePolynomialReflection
 
 -- system of polynomial class reflection
 -- rules are independent of zero coefficients
-class PolynomialReflection
+class PolynomialBaseReflection
     (R : Type*) [Semiring R] (T : R[X] → Type*) extends
-    SensitivePolynomialReflection R T where
+    SensitivePolynomialBaseReflection R T where
 
   mk_one : T 1
-  mk_C : T (C c)
+  mk_C c : T (C c)
   mk_X : T X
   mk_XPow n : T (X ^ n)
+
+  mk_one_sns := mk_one
+  mk_C_nonzero c := mk_C c
+  mk_X_sns := mk_X
+  mk_XPow_sns n := mk_XPow n
+
+class PolynomialClosureReflection
+    (R : Type*) [Semiring R] (T : R[X] → Type*) extends
+    SensitivePolynomialClosureReflection R T where
 
   mk_pow p n : T p → T (p ^ n)
   mk_mul p q : T p → T q → T (p * q)
   mk_add p q : T p → T q → T (p + q)
-
-  mk_one_sns := mk_one
-  mk_C_nonzero := mk_C
-  mk_X_sns := mk_X
-  mk_XPow_sns n := mk_XPow n
 
   mk_pow_sns p _ n _ := mk_pow p n
   mk_mul_sns p q _ _ _ := mk_mul p q
@@ -178,21 +185,26 @@ class PolynomialFormReflection
 -- systems of polynomial reflection
 
 class DegreeLeReflection (R : Type*) [Semiring R] extends
-    PolynomialReflection R DegreeLe
+    PolynomialBaseReflection R DegreeLe,
+    PolynomialClosureReflection R DegreeLe
 
 class DegreeEqReflection (R : Type*) [Semiring R] extends
-    SensitivePolynomialReflection R DegreeEq
+    SensitivePolynomialBaseReflection R DegreeEq,
+    SensitivePolynomialClosureReflection R DegreeEq
 
 class LeadingCoeffReflection (R : Type*) [Semiring R] extends
-    SensitivePolynomialReflection R LeadingCoeff
+    PolynomialBaseReflection R LeadingCoeff,
+    SensitivePolynomialClosureReflection R LeadingCoeff
 
 class CoeffsReflection (α : Type*) (f : α → ℕ → R) extends
-    PolynomialReflection R (Coeffs α f),
+    PolynomialBaseReflection R (Coeffs α f),
+    PolynomialClosureReflection R (Coeffs α f),
     PolynomialNormalReflection R (Coeffs α f),
     PolynomialFormReflection R (Coeffs α f)
 
 class EvalReflection (α : Type*) (f : α → R → R) extends
-    PolynomialReflection R (Eval α f)
+    PolynomialBaseReflection R (Eval α f),
+    PolynomialClosureReflection R (Eval α f)
 
 end Systems
 
@@ -201,83 +213,86 @@ end Systems
 section Instances
 
 variable {T : R[X] → Type*}
-variable [SensitivePolynomialReflection R T] [PolynomialReflection R T]
+variable [SensitivePolynomialBaseReflection R T]
+variable [SensitivePolynomialClosureReflection R T]
+variable [PolynomialBaseReflection R T]
+variable [PolynomialClosureReflection R T]
 variable (p q : R[X]) [P : Inhabited (T p)] [Q : Inhabited (T q)]
 
 @[simp]
 instance instZero : Inhabited (T 0) :=
-  ⟨SensitivePolynomialReflection.mk_zero⟩
+  ⟨SensitivePolynomialBaseReflection.mk_zero⟩
 
 @[simp]
 instance instOneSns [Nontrivial R] : Inhabited (T 1) :=
-  ⟨SensitivePolynomialReflection.mk_one_sns⟩
+  ⟨SensitivePolynomialBaseReflection.mk_one_sns⟩
 @[simp]
 instance instOne : Inhabited (T 1) :=
-  ⟨PolynomialReflection.mk_one⟩
+  ⟨PolynomialBaseReflection.mk_one⟩
 
 @[simp]
 instance instCNonzero [NeZero c] : Inhabited (T (C c)) :=
-  ⟨SensitivePolynomialReflection.mk_C_nonzero⟩
+  ⟨SensitivePolynomialBaseReflection.mk_C_nonzero c⟩
 @[simp]
 instance instC : Inhabited (T (C c)) :=
-  ⟨PolynomialReflection.mk_C⟩
+  ⟨PolynomialBaseReflection.mk_C c⟩
 @[simp]
 instance instCZero : Inhabited (T (C 0)) :=
-  ⟨SensitivePolynomialReflection.mk_C_zero⟩
+  ⟨SensitivePolynomialBaseReflection.mk_C_zero⟩
 
 @[simp]
 instance instXSns [Nontrivial R] : Inhabited (T X) :=
-  ⟨SensitivePolynomialReflection.mk_X_sns⟩
+  ⟨SensitivePolynomialBaseReflection.mk_X_sns⟩
 @[simp]
 instance instX : Inhabited (T X) :=
-  ⟨PolynomialReflection.mk_X⟩
+  ⟨PolynomialBaseReflection.mk_X⟩
 
 @[simp]
 instance instXPowSns [Nontrivial R] : Inhabited (T (X ^ n)) :=
-  ⟨SensitivePolynomialReflection.mk_XPow_sns n⟩
+  ⟨SensitivePolynomialBaseReflection.mk_XPow_sns n⟩
 @[simp]
 instance instXPow : Inhabited (T (X ^ n)) :=
-  ⟨PolynomialReflection.mk_XPow n⟩
+  ⟨PolynomialBaseReflection.mk_XPow n⟩
 
 variable [LeadingCoeff p] [NeZero (leadingCoeffPow p n)] in
 @[simp]
 instance instPowSns : Inhabited (T (p ^ n)) :=
   match P with
-  | ⟨P⟩ => ⟨SensitivePolynomialReflection.mk_pow_sns p n P⟩
+  | ⟨P⟩ => ⟨SensitivePolynomialClosureReflection.mk_pow_sns p n P⟩
 @[simp]
 instance instPow : Inhabited (T (p ^ n)) :=
   match P with
-  | ⟨P⟩ => ⟨PolynomialReflection.mk_pow p n P⟩
+  | ⟨P⟩ => ⟨PolynomialClosureReflection.mk_pow p n P⟩
 
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
 @[simp]
 instance instMulSns : Inhabited (T (p * q)) :=
   match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialReflection.mk_mul_sns p q P Q⟩
+  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_mul_sns p q P Q⟩
 @[simp]
 instance instMul : Inhabited (T (p * q)) :=
   match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialReflection.mk_mul p q P Q⟩
+  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialClosureReflection.mk_mul p q P Q⟩
 
 variable [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
 @[simp]
 instance instAddLeft : Inhabited (T (p + q)) :=
   match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialReflection.mk_add_left p q h P Q⟩
+  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_add_left p q h P Q⟩
 variable [DegreeLe p] [DegreeEq q] (h : degreeLt p q) in
 @[simp]
 instance instAddRight : Inhabited (T (p + q)) :=
   match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialReflection.mk_add_right p q h P Q⟩
+  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_add_right p q h P Q⟩
 variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
 @[simp]
 instance instAddBalanced : Inhabited (T (p + q)) :=
   match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialReflection.mk_add_balanced p q h P Q⟩
+  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_add_balanced p q h P Q⟩
 @[simp]
 instance instAdd : Inhabited (T (p + q)) :=
   match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialReflection.mk_add p q P Q⟩
+  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialClosureReflection.mk_add p q P Q⟩
 
 end Instances
 
@@ -299,7 +314,7 @@ macro_rules
 syntax "reflect_degree_eq_trying" "<:>" tactic : tactic
 macro_rules
   | `(tactic| reflect_degree_eq_trying <:> $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (default (by infer_instance_trying <:> $t))); try trivial)
+    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (@default _ (by infer_instance_trying <:> $t))); try trivial)
 syntax "reflect_degree_eq_trying" : tactic
 macro_rules
   | `(tactic| reflect_degree_eq_trying) =>
@@ -316,7 +331,7 @@ macro_rules
 syntax "reflect_leading_coeff_trying" "<:>" tactic : tactic
 macro_rules
   | `(tactic| reflect_leading_coeff_trying <:> $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (default (by infer_instance_trying <:> $t))); try trivial)
+    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (@default _ (by infer_instance_trying <:> $t))); try trivial)
 syntax "reflect_leading_coeff_trying" : tactic
 macro_rules
   | `(tactic| reflect_leading_coeff_trying) =>
@@ -340,3 +355,65 @@ macro_rules
     `(tactic| apply Eq.trans (Polynomial.PolynomialFormReflection.transform default).property; try simp)
 
 end Tactics
+
+
+
+
+-- SAMPLE
+
+open Polynomial
+variable [Semiring R]
+
+instance : DegreeEqReflection R where
+
+  mk_zero := ⟨⊥, sorry⟩
+
+  mk_one_sns := ⟨0, sorry⟩
+
+  mk_C_zero := ⟨⊥, sorry⟩
+
+  mk_C_nonzero c := ⟨0, sorry⟩
+
+  mk_X_sns := ⟨1, sorry⟩
+
+  mk_XPow_sns n := ⟨n, sorry⟩
+
+  mk_pow_sns p _ n _ P := ⟨n • P.D, sorry⟩
+
+  mk_mul_sns p q _ _ _ P Q := ⟨P.D + P.D, sorry⟩
+
+  mk_add_left p q _ _ _ P Q := ⟨P.D, sorry⟩
+
+  mk_add_right p q _ _ _ P Q := ⟨Q.D, sorry⟩
+
+  mk_add_balanced p q _ _ _ P Q := ⟨P.D, sorry⟩
+
+instance : LeadingCoeffReflection R where
+
+  mk_zero := ⟨0, sorry⟩
+
+  mk_one := ⟨1, sorry⟩
+
+  mk_C_zero := ⟨0, sorry⟩
+
+  mk_C c := ⟨c, sorry⟩
+
+  mk_X := ⟨1, sorry⟩
+
+  mk_XPow n := ⟨1, sorry⟩
+
+  mk_pow_sns p _ n _ P := ⟨P.c ^ n, sorry⟩
+
+  mk_mul_sns p q _ _ _ P Q := ⟨P.c * Q.c, sorry⟩
+
+  mk_add_left p q _ _ _ P Q := ⟨P.c, sorry⟩
+
+  mk_add_right p q _ _ _ P Q := ⟨Q.c, sorry⟩
+
+  mk_add_balanced p q _ _ _ P Q := ⟨P.c + Q.c, sorry⟩
+
+example [Nontrivial R] : (C 1 : R[X]).degree = 0 := by reflect_degree_eq
+example : (X : R[X]).leadingCoeff = 1 := by reflect_leading_coeff
+
+-- FAILS
+example : Inhabited (LeadingCoeff ((1 : R[X]) ^ 2)) := sorry -- by infer_instance_trying <;> ( skip )
