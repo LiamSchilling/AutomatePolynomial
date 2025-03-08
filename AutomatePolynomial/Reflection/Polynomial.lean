@@ -3,6 +3,8 @@ import AutomatePolynomial.Tactic.InferInstance
 import AutomatePolynomial.WithBot.Basic
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
 
+import AutomatePolynomial.Core.Polynomial
+
 namespace Polynomial
 
 variable [Semiring R]
@@ -94,18 +96,20 @@ section Systems
 class PolynomialNormalReflection
     (R : Type*) [Semiring R] (T : R[X] → Type*) where
 
-  mk_norm p : Normalizer (T p)
+  mk_norm [DecidableEq R] p : Normalizer (T p)
 
-  degreeEq_of_normal : (mk_norm p).Normal → DegreeEq p
-  leadingCoeff_of_normal : (mk_norm p).Normal → LeadingCoeff p
+  degreeEq_of_normal [DecidableEq R] : (mk_norm p).Normal → DegreeEq p
+  leadingCoeff_of_normal [DecidableEq R] : (mk_norm p).Normal → LeadingCoeff p
 
 variable {T : R[X] → Type*} [PolynomialNormalReflection R T] in
+variable [DecidableEq R] in
 @[simp]
 def degreeEq_of_normal (self : T p) : DegreeEq p :=
   PolynomialNormalReflection.degreeEq_of_normal (
     (PolynomialNormalReflection.mk_norm p).normalize self )
 
 variable {T : R[X] → Type*} [PolynomialNormalReflection R T] in
+variable [DecidableEq R] in
 @[simp]
 def leadingCoeff_of_normal (self : T p) : LeadingCoeff p :=
   PolynomialNormalReflection.leadingCoeff_of_normal (
@@ -302,59 +306,65 @@ end Polynomial
 
 section Tactics
 
-syntax "reflect_degree_le" : tactic
+syntax "poly_reflect_degree_le" : tactic
 macro_rules
-  | `(tactic| reflect_degree_le) =>
-    `(tactic| apply le_trans (@Polynomial.DegreeLe.isLe _ _ _ default); try trivial)
+  | `(tactic| poly_reflect_degree_le) =>
+    `(tactic| apply le_trans (@Polynomial.DegreeLe.isLe _ _ _ default); dsimp [Polynomial.DegreeLe.D])
 
-syntax "reflect_degree_eq" : tactic
+syntax "poly_reflect_degree_eq" : tactic
 macro_rules
-  | `(tactic| reflect_degree_eq) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ default); try trivial)
-syntax "reflect_degree_eq_trying" "<:>" tactic : tactic
+  | `(tactic| poly_reflect_degree_eq) =>
+    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ default); dsimp [Polynomial.DegreeEq.D])
+syntax "poly_reflect_degree_eq_trying" "<:>" tactic : tactic
 macro_rules
-  | `(tactic| reflect_degree_eq_trying <:> $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (@default _ (by infer_instance_trying <:> $t))); try trivial)
-syntax "reflect_degree_eq_trying" : tactic
+  | `(tactic| poly_reflect_degree_eq_trying <:> $t) =>
+    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (@default _ (by infer_instance_trying <:> $t))); dsimp [Polynomial.DegreeEq.D])
+syntax "poly_reflect_degree_eq_trying" : tactic
 macro_rules
-  | `(tactic| reflect_degree_eq_trying) =>
-    `(tactic| reflect_degree_eq_trying <:> ( try_reg ))
-syntax "reflect_degree_eq_of_coeffs" : tactic
+  | `(tactic| poly_reflect_degree_eq_trying) =>
+    `(tactic| poly_reflect_degree_eq_trying <:> ( try_reg ))
+syntax "poly_reflect_degree_eq_of_coeffs" "VIA" term : tactic
 macro_rules
-  | `(tactic| reflect_degree_eq_of_coeffs) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (Polynomial.degreeEq_of_normal default)); try trivial)
+  | `(tactic| poly_reflect_degree_eq_of_coeffs VIA $f) =>
+    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (Polynomial.degreeEq_of_normal (default : Polynomial.Coeffs _ $f _))); dsimp [Polynomial.DegreeEq.D])
 
-syntax "reflect_leading_coeff" : tactic
+syntax "poly_reflect_leading_coeff" : tactic
 macro_rules
-  | `(tactic| reflect_leading_coeff) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ default); try trivial)
-syntax "reflect_leading_coeff_trying" "<:>" tactic : tactic
+  | `(tactic| poly_reflect_leading_coeff) =>
+    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ default); dsimp [Polynomial.LeadingCoeff.c])
+syntax "poly_reflect_leading_coeff_trying" "<:>" tactic : tactic
 macro_rules
-  | `(tactic| reflect_leading_coeff_trying <:> $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (@default _ (by infer_instance_trying <:> $t))); try trivial)
-syntax "reflect_leading_coeff_trying" : tactic
+  | `(tactic| poly_reflect_leading_coeff_trying <:> $t) =>
+    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (@default _ (by infer_instance_trying <:> $t))); dsimp [Polynomial.LeadingCoeff.c])
+syntax "poly_reflect_leading_coeff_trying" : tactic
 macro_rules
-  | `(tactic| reflect_leading_coeff_trying) =>
-    `(tactic| reflect_leading_coeff_trying <:> ( try_reg ))
-syntax "reflect_leading_coeff_of_coeffs" : tactic
+  | `(tactic| poly_reflect_leading_coeff_trying) =>
+    `(tactic| poly_reflect_leading_coeff_trying <:> ( try_reg ))
+syntax "poly_reflect_leading_coeff_of_coeffs" "VIA" term : tactic
 macro_rules
-  | `(tactic| reflect_leading_coeff_of_coeffs) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (Polynomial.leadingCoeff_of_normal default)); try trivial)
+  | `(tactic| poly_reflect_leading_coeff_of_coeffs VIA $f) =>
+    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (Polynomial.leadingCoeff_of_normal (default : Polynomial.Coeffs _ $f _))); dsimp [Polynomial.LeadingCoeff.c])
 
-syntax "reflect_coeff" : tactic
+syntax "poly_reflect_coeff" "VIA" term : tactic
 macro_rules
-  | `(tactic| reflect_coeff) =>
-    `(tactic| apply Eq.trans (@Polynomial.Coeffs.isEqAt _ _ _ _ _ default _); try simp)
-syntax "reflect_eval" : tactic
+  | `(tactic| poly_reflect_coeff VIA $f) =>
+    `(tactic| apply Eq.trans (@Polynomial.Coeffs.isEqAt _ _ _ _ _ (default : Polynomial.Coeffs _ $f _) _); simp [Polynomial.Coeffs.C])
+syntax "poly_reflect_eval" "VIA" term : tactic
 macro_rules
-  | `(tactic| reflect_eval) =>
-    `(tactic| apply Eq.trans (@Polynomial.Eval.isEqAt _ _ _ _ _ default _); try simp)
-syntax "reflect_transform" : tactic
+  | `(tactic| poly_reflect_eval VIA $f) =>
+    `(tactic| apply Eq.trans (@Polynomial.Eval.isEqAt _ _ _ _ _ (default : Polynomial.Eval _ $f _) _); simp [Polynomial.Eval.F])
+syntax "poly_reflect_expand" "VIA" term : tactic
 macro_rules
-  | `(tactic| reflect_transform) =>
-    `(tactic| apply Eq.trans (Polynomial.PolynomialFormReflection.transform default).property; try simp)
+  | `(tactic| poly_reflect_expand VIA $f) =>
+    `(tactic| apply Eq.trans (Polynomial.PolynomialFormReflection.transform (default : Polynomial.Coeffs _ $f _)).property; simp [Polynomial.Coeffs.C, Polynomial.PolynomialFormReflection.transform])
 
 end Tactics
+
+
+
+
+
+
 
 
 
@@ -364,7 +374,7 @@ end Tactics
 open Polynomial
 variable [Semiring R]
 
-instance : DegreeEqReflection R where
+instance instDegreeEqReflection : DegreeEqReflection R where
 
   mk_zero := ⟨⊥, sorry⟩
 
@@ -388,7 +398,7 @@ instance : DegreeEqReflection R where
 
   mk_add_balanced p q _ _ _ P Q := ⟨P.D, sorry⟩
 
-instance : LeadingCoeffReflection R where
+instance instLeadingCoeffsReflection : LeadingCoeffReflection R where
 
   mk_zero := ⟨0, sorry⟩
 
@@ -412,8 +422,49 @@ instance : LeadingCoeffReflection R where
 
   mk_add_balanced p q _ _ _ P Q := ⟨P.c + Q.c, sorry⟩
 
-example [Nontrivial R] : (C 1 : R[X]).degree = 0 := by reflect_degree_eq
-example : (X : R[X]).leadingCoeff = 1 := by reflect_leading_coeff
+example : (X ^ 100 : ℤ[X]).degree = 100 := by poly_reflect_degree_eq
 
+example [Nontrivial R] : (C 1 : R[X]).degree = 0 := by poly_reflect_degree_eq
+example : (X : R[X]).leadingCoeff = 1 := by poly_reflect_leading_coeff
 -- FAILS
 example : Inhabited (LeadingCoeff ((1 : R[X]) ^ 2)) := sorry -- by infer_instance_trying <;> ( skip )
+
+@[simp]
+def f_list (C : List R) (n : ℕ) := C[n]?.getD 0
+
+noncomputable instance instCoeffsReflection_list : CoeffsReflection (List R) f_list where
+
+  mk_zero := ⟨[], sorry⟩
+
+  mk_one := ⟨[1], sorry⟩
+
+  mk_C_zero := ⟨[], sorry⟩
+
+  mk_C c := ⟨[c], sorry⟩
+
+  mk_X := ⟨[0, 1], sorry⟩
+
+  mk_XPow n := ⟨List.replicate n 0 ++ [1], sorry⟩
+
+  mk_pow p n P := ⟨Coeffs.powAux n P.C, sorry⟩
+
+  mk_mul p q P Q := ⟨Coeffs.mulAux P.C Q.C, sorry⟩
+
+  mk_add p q P Q := ⟨Coeffs.addAux P.C Q.C, sorry⟩
+
+  mk_norm p := ⟨
+    { T | match T.C.reverse with | [] => True | c :: _ => c ≠ 0 },
+    fun T => ⟨⟨(T.C.reverse.dropWhile (Eq 0 : R → Prop)).reverse, sorry⟩, sorry⟩,
+    sorry ⟩
+
+  degreeEq_of_normal := by intro _ _ ⟨T, _⟩; exact ⟨
+    match T.C.reverse with | [] => ⊥ | _ :: cs => cs.length,
+    sorry ⟩
+
+  leadingCoeff_of_normal := by intro _ _ ⟨T, _⟩; exact ⟨
+    match T.C.reverse with | [] => 0 | c :: _ => c,
+    sorry ⟩
+
+  transform T := ⟨Coeffs.expandAux T.C 0, sorry⟩
+
+example : ((C 2 * X) ^ 2 : ℤ[X]) = C 4 * X ^ 2 := by poly_reflect_expand VIA f_list; unfold_expand_aux; simp
