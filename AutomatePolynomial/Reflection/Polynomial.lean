@@ -1,9 +1,23 @@
+import Lean
 import AutomatePolynomial.Reflection.NormalForm
 import AutomatePolynomial.Tactic.InferInstance
 import AutomatePolynomial.WithBot.Basic
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
 
 import AutomatePolynomial.Core.Polynomial
+
+open Lean
+-- none of the below work
+--initialize t : Unit ← registerBuiltinAttribute {
+builtin_initialize registerBuiltinAttribute {
+  name := `sns_poly_base_reflection
+  descr := "on 'instance : SensitivePolynomialBaseReflection R T' where 'T' is a typeclass, defines instances of 'T'"
+  add declName stx kind := Meta.MetaM.run' do IO.println s!"Attribute applied to: {declName}"
+}
+
+-- should annotate "Attribute applied to: n"
+--@[sns_poly_base_reflection]
+def n := 2
 
 namespace Polynomial
 
