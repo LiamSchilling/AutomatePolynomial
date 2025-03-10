@@ -223,61 +223,6 @@ variable [PolynomialBaseReflection R T]
 variable [PolynomialClosureReflection R T]
 variable (p q : R[X]) [P : Inhabited (T p)] [Q : Inhabited (T q)]
 
-@[simp]
-instance instZero : Inhabited (T 0) :=
-  ⟨SensitivePolynomialBaseReflection.mk_zero⟩
-
-@[simp]
-instance instOneSns [Nontrivial R] : Inhabited (T 1) :=
-  ⟨SensitivePolynomialBaseReflection.mk_one_sns⟩
-@[simp]
-instance instOne : Inhabited (T 1) :=
-  ⟨PolynomialBaseReflection.mk_one⟩
-
-@[simp]
-instance instCNonzero [NeZero c] : Inhabited (T (C c)) :=
-  ⟨SensitivePolynomialBaseReflection.mk_C_nonzero c⟩
-@[simp]
-instance instC : Inhabited (T (C c)) :=
-  ⟨PolynomialBaseReflection.mk_C c⟩
-@[simp]
-instance instCZero : Inhabited (T (C 0)) :=
-  ⟨SensitivePolynomialBaseReflection.mk_C_zero⟩
-
-@[simp]
-instance instXSns [Nontrivial R] : Inhabited (T X) :=
-  ⟨SensitivePolynomialBaseReflection.mk_X_sns⟩
-@[simp]
-instance instX : Inhabited (T X) :=
-  ⟨PolynomialBaseReflection.mk_X⟩
-
-@[simp]
-instance instXPowSns [Nontrivial R] : Inhabited (T (X ^ n)) :=
-  ⟨SensitivePolynomialBaseReflection.mk_XPow_sns n⟩
-@[simp]
-instance instXPow : Inhabited (T (X ^ n)) :=
-  ⟨PolynomialBaseReflection.mk_XPow n⟩
-
-variable [LeadingCoeff p] [NeZero (leadingCoeffPow p n)] in
-@[simp]
-instance instPowSns : Inhabited (T (p ^ n)) :=
-  match P with
-  | ⟨P⟩ => ⟨SensitivePolynomialClosureReflection.mk_pow_sns p n P⟩
-@[simp]
-instance instPow : Inhabited (T (p ^ n)) :=
-  match P with
-  | ⟨P⟩ => ⟨PolynomialClosureReflection.mk_pow p n P⟩
-
-variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
-@[simp]
-instance instMulSns : Inhabited (T (p * q)) :=
-  match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_mul_sns p q P Q⟩
-@[simp]
-instance instMul : Inhabited (T (p * q)) :=
-  match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialClosureReflection.mk_mul p q P Q⟩
-
 variable [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
 @[simp]
 instance instAddLeft : Inhabited (T (p + q)) :=
@@ -297,6 +242,61 @@ instance instAddBalanced : Inhabited (T (p + q)) :=
 instance instAdd : Inhabited (T (p + q)) :=
   match P, Q with
   | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialClosureReflection.mk_add p q P Q⟩
+
+variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
+@[simp]
+instance instMulSns : Inhabited (T (p * q)) :=
+  match P, Q with
+  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_mul_sns p q P Q⟩
+@[simp]
+instance instMul : Inhabited (T (p * q)) :=
+  match P, Q with
+  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialClosureReflection.mk_mul p q P Q⟩
+
+variable [LeadingCoeff p] [NeZero (leadingCoeffPow p n)] in
+@[simp]
+instance instPowSns : Inhabited (T (p ^ n)) :=
+  match P with
+  | ⟨P⟩ => ⟨SensitivePolynomialClosureReflection.mk_pow_sns p n P⟩
+@[simp]
+instance instPow : Inhabited (T (p ^ n)) :=
+  match P with
+  | ⟨P⟩ => ⟨PolynomialClosureReflection.mk_pow p n P⟩
+
+@[simp]
+instance instXPowSns [Nontrivial R] : Inhabited (T (X ^ n)) :=
+  ⟨SensitivePolynomialBaseReflection.mk_XPow_sns n⟩
+@[simp]
+instance instXPow : Inhabited (T (X ^ n)) :=
+  ⟨PolynomialBaseReflection.mk_XPow n⟩
+
+@[simp]
+instance instXSns [Nontrivial R] : Inhabited (T X) :=
+  ⟨SensitivePolynomialBaseReflection.mk_X_sns⟩
+@[simp]
+instance instX : Inhabited (T X) :=
+  ⟨PolynomialBaseReflection.mk_X⟩
+
+@[simp]
+instance instCNonzero [NeZero c] : Inhabited (T (C c)) :=
+  ⟨SensitivePolynomialBaseReflection.mk_C_nonzero c⟩
+@[simp]
+instance instC : Inhabited (T (C c)) :=
+  ⟨PolynomialBaseReflection.mk_C c⟩
+@[simp]
+instance instCZero : Inhabited (T (C 0)) :=
+  ⟨SensitivePolynomialBaseReflection.mk_C_zero⟩
+
+@[simp]
+instance instOneSns [Nontrivial R] : Inhabited (T 1) :=
+  ⟨SensitivePolynomialBaseReflection.mk_one_sns⟩
+@[simp]
+instance instOne : Inhabited (T 1) :=
+  ⟨PolynomialBaseReflection.mk_one⟩
+
+@[simp]
+instance instZero : Inhabited (T 0) :=
+  ⟨SensitivePolynomialBaseReflection.mk_zero⟩
 
 end Instances
 
@@ -427,7 +427,10 @@ example : (X ^ 100 : ℤ[X]).degree = 100 := by poly_reflect_degree_eq
 example [Nontrivial R] : (C 1 : R[X]).degree = 0 := by poly_reflect_degree_eq
 example : (X : R[X]).leadingCoeff = 1 := by poly_reflect_leading_coeff
 -- FAILS
-example : Inhabited (LeadingCoeff ((1 : R[X]) ^ 2)) := sorry -- by infer_instance_trying <;> ( skip )
+
+instance : LeadingCoeff (1 : R[X]) := @default _ (by infer_instance_trying)
+example : NeZero (leadingCoeffPow (1 : ℤ[X]) 2) := by try_reg
+example [Nontrivial R] : Inhabited (LeadingCoeff (X * X : ℤ[X])) := by sorry
 
 @[simp]
 def f_list (C : List R) (n : ℕ) := C[n]?.getD 0
