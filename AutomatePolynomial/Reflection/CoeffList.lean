@@ -7,7 +7,7 @@ variable [Semiring R]
 
 abbrev CoeffsList := Coeffs (List R) (List.getD . 0 .)
 
-noncomputable instance instCoeffsListReflection : CoeffsNormalReflection R (List R) ident where
+noncomputable instance instCoeffsListReflection : CoeffsNormalReflection R (List R) (List.getD . 0 .) where
 
   mk_C c := {
     C := [c]
