@@ -1,8 +1,9 @@
-import AutomatePolynomial.Reflection.Coeff
+import AutomatePolynomial.Reflection.CoeffArrow
+import AutomatePolynomial.Reflection.CoeffList
 import AutomatePolynomial.Reflection.Degree
-import AutomatePolynomial.Reflection.Eval
-import AutomatePolynomial.Tactic.InferInstance
+import AutomatePolynomial.Reflection.EvalArrow
 
+/-
 namespace Polynomial
 
 variable [Semiring R]
@@ -82,3 +83,4 @@ syntax "reflect_leading_coeff_of_coeffs" : tactic
 macro_rules
   | `(tactic| reflect_leading_coeff_of_coeffs) =>
     `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (Polynomial.leadingCoeff_of_coeffs _)); try trivial)
+-/

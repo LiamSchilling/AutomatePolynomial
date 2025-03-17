@@ -13,7 +13,6 @@ def synthInstanceTrying (goal : MVarId) (tactic : Syntax) (d : Nat := 8) :
   | 0 => throwError "maximum recursion depth reached"
   | d + 1 =>
   -- try to resolve goal using tactic
-  logInfo (toMessageData goal)
   let state ← saveState
   try
     let (subgoals, _) ← runTactic goal tactic
@@ -24,13 +23,11 @@ def synthInstanceTrying (goal : MVarId) (tactic : Syntax) (d : Nat := 8) :
     restoreState state
     -- iterate through applicable instances
     for inst in (← SynthInstance.getInstances (← goal.getType)).reverse do
-      logInfo inst.val
       -- try to apply the instance and recursively resolve resulting subgoals
       let state ← saveState
       try
         let subgoals ← goal.apply inst.val { allowSynthFailures := true }
-        logInfo (toString subgoals.length)
-        let _ ← subgoals.mapM (synthInstanceTrying . tactic d)
+        let _ ← subgoals.reverse.mapM (synthInstanceTrying . tactic d)
         return
       catch _ =>
         restoreState state

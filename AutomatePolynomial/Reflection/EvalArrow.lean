@@ -1,5 +1,36 @@
-import AutomatePolynomial.Core.Polynomial
+import AutomatePolynomial.Reflection.Polynomial
 
+open Polynomial
+
+variable [Semiring R]
+
+instance instEvalArrowReflection : EvalReflection R (R → R) id where
+
+  mk_C c := {
+    F _ := c
+    isEq := by simp }
+
+  mk_X := {
+    F x := x
+    isEq := by simp }
+
+  mk_XPow n := {
+    F x := x ^ n
+    isEq := by simp; funext; sorry }
+
+  mk_pow _ n P := {
+    F x := P.F x ^ n
+    isEq := by simp; funext; sorry }
+
+  mk_mul _ _ P Q := {
+    F x := P.F x * Q.F x
+    isEq := by simp; funext; sorry }
+
+  mk_add _ _ P Q := {
+    F x := P.F x + Q.F x
+    isEq := by simp; funext; sorry }
+
+/-
 namespace Polynomial
 
 -- compute polynomial evaluation
@@ -71,3 +102,4 @@ instance instEvalAdd : Eval (p + q) where
 end Eval
 
 end Polynomial
+-/

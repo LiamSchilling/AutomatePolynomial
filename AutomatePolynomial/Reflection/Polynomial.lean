@@ -1,23 +1,7 @@
-import Lean
 import AutomatePolynomial.Reflection.NormalForm
 import AutomatePolynomial.Tactic.InferInstance
 import AutomatePolynomial.WithBot.Basic
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
-
-import AutomatePolynomial.Core.Polynomial
-
-open Lean
--- none of the below work
---initialize t : Unit ← registerBuiltinAttribute {
-builtin_initialize registerBuiltinAttribute {
-  name := `sns_poly_base_reflection
-  descr := "on 'instance : SensitivePolynomialBaseReflection R T' where 'T' is a typeclass, defines instances of 'T'"
-  add declName stx kind := Meta.MetaM.run' do IO.println s!"Attribute applied to: {declName}"
-}
-
--- should annotate "Attribute applied to: n"
---@[sns_poly_base_reflection]
-def n := 2
 
 namespace Polynomial
 
@@ -105,10 +89,12 @@ def degreeLe_of_degreeEq (p : R[X]) [DegreeEq p] : DegreeLe p where
 
 section Systems
 
+variable (R : Type*) [Semiring R] (T : R[X] → Type*)
+variable (α : Type*)
+
 -- normal form for descriptions of polynomials
 -- degree and leading coefficient derivations from normal forms
-class PolynomialNormalReflection
-    (R : Type*) [Semiring R] (T : R[X] → Type*) where
+class PolynomialNormalReflection where
 
   mk_norm [DecidableEq R] p : Normalizer (T p)
 
@@ -131,18 +117,14 @@ def leadingCoeff_of_normal (self : T p) : LeadingCoeff p :=
 
 -- system of polynomial class reflection
 -- rules may be sensitive to zero coefficients and thus cancellations
-class SensitivePolynomialBaseReflection
-    (R : Type*) [Semiring R] (T : R[X] → Type*) where
+class SensitivePolynomialBaseReflection where
 
   mk_zero : T 0
-  mk_one_sns [Nontrivial R] : T 1
-  mk_C_zero : T (C 0)
-  mk_C_nonzero c [NeZero c] : T (C c)
+  mk_C_sns c [NeZero c] : T (C c)
   mk_X_sns [Nontrivial R] : T X
   mk_XPow_sns [Nontrivial R] n : T (X ^ n)
 
-class SensitivePolynomialClosureReflection
-    (R : Type*) [Semiring R] (T : R[X] → Type*) where
+class SensitivePolynomialClosureReflection where
 
   mk_pow_sns
       p [LeadingCoeff p] n [NeZero (leadingCoeffPow p n)] :
@@ -161,156 +143,196 @@ class SensitivePolynomialClosureReflection
       T p → T q → T (p + q)
 
   mk_add_balanced
-      p q [DegreeEq p] [DegreeEq q] (_ : degreeEq p q) :
+      p q [DegreeEq p] [DegreeEq q]
+      [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)]
+      (_ : degreeEq p q) :
       T p → T q → T (p + q)
 
 -- system of polynomial class reflection
 -- rules are independent of zero coefficients
-class PolynomialBaseReflection
-    (R : Type*) [Semiring R] (T : R[X] → Type*) extends
-    SensitivePolynomialBaseReflection R T where
+class PolynomialBaseReflection where
 
-  mk_one : T 1
   mk_C c : T (C c)
   mk_X : T X
   mk_XPow n : T (X ^ n)
 
-  mk_one_sns := mk_one
-  mk_C_nonzero c := mk_C c
-  mk_X_sns := mk_X
-  mk_XPow_sns n := mk_XPow n
+-- we include this derivation instead of making PBR extend SPBR
+-- to keep SPBR instances invisible to PBR inference
+-- reducing the size of a PBR search
+@[simp]
+def sensitive_of_polynomialBaseReflection
+    [PBR : PolynomialBaseReflection R T] :
+    SensitivePolynomialBaseReflection R T where
 
-class PolynomialClosureReflection
-    (R : Type*) [Semiring R] (T : R[X] → Type*) extends
-    SensitivePolynomialClosureReflection R T where
+  mk_zero := C_0.rec (PBR.mk_C 0)
+  mk_C_sns c := PBR.mk_C c
+  mk_X_sns := PBR.mk_X
+  mk_XPow_sns n := PBR.mk_XPow n
+
+class PolynomialClosureReflection where
 
   mk_pow p n : T p → T (p ^ n)
   mk_mul p q : T p → T q → T (p * q)
   mk_add p q : T p → T q → T (p + q)
 
-  mk_pow_sns p _ n _ := mk_pow p n
-  mk_mul_sns p q _ _ _ := mk_mul p q
-  mk_add_left p q _ _ _ := mk_add p q
-  mk_add_right p q _ _ _ := mk_add p q
-  mk_add_balanced p q _ _ _ := mk_add p q
+-- we include this derivation instead of making PCR extend SPCR
+-- to keep SPCR instances invisible to PCR inference
+-- reducing the size of a PCR search
+@[simp]
+def sensitive_of_polynomialClosureReflection
+    [PCR : PolynomialClosureReflection R T] :
+    SensitivePolynomialClosureReflection R T where
+
+  mk_pow_sns p _ n _ := PCR.mk_pow p n
+  mk_mul_sns p q _ _ _ := PCR.mk_mul p q
+  mk_add_left p q _ _ _ := PCR.mk_add p q
+  mk_add_right p q _ _ _ := PCR.mk_add p q
+  mk_add_balanced p q _ _ _ _ _ _ := PCR.mk_add p q
 
 -- system of polynomial reflection that supports rewriting
-class PolynomialFormReflection
-    (R : Type*) [Semiring R] (T : R[X] → Type*) where
+class PolynomialFormReflection where
 
   transform : T p → { q // p = q }
 
 -- systems of polynomial reflection
 
-class DegreeLeReflection (R : Type*) [Semiring R] extends
+class DegreeLeReflection extends
     PolynomialBaseReflection R DegreeLe,
     PolynomialClosureReflection R DegreeLe
 
-class DegreeEqReflection (R : Type*) [Semiring R] extends
+class DegreeEqReflection extends
     SensitivePolynomialBaseReflection R DegreeEq,
     SensitivePolynomialClosureReflection R DegreeEq
 
-class LeadingCoeffReflection (R : Type*) [Semiring R] extends
+class LeadingCoeffReflection extends
     PolynomialBaseReflection R LeadingCoeff,
     SensitivePolynomialClosureReflection R LeadingCoeff
 
-class CoeffsReflection (α : Type*) (f : α → ℕ → R) extends
+class CoeffsReflection (f : α → ℕ → R) extends
     PolynomialBaseReflection R (Coeffs α f),
-    PolynomialClosureReflection R (Coeffs α f),
+    PolynomialClosureReflection R (Coeffs α f)
+
+class CoeffsNormalReflection (f : α → ℕ → R) extends
+    CoeffsReflection R α f,
     PolynomialNormalReflection R (Coeffs α f),
     PolynomialFormReflection R (Coeffs α f)
 
-class EvalReflection (α : Type*) (f : α → R → R) extends
+class EvalReflection (f : α → R → R) extends
     PolynomialBaseReflection R (Eval α f),
     PolynomialClosureReflection R (Eval α f)
 
 end Systems
 
--- inference rules
-
 section Instances
 
 variable {T : R[X] → Type*}
+
+-- typeclass wraper for class of polynomials
+class PolyClass (T : R[X] → Type*) (p : R[X]) where
+  inst : T p
+
+-- inst with explicit instance
+@[simp]
+def PolyClass.instOf (self : PolyClass T p) := self.inst
+
+-- inst with explicit type
+@[simp]
+def PolyClass.instAs (T : R[X] → Type*) [self : PolyClass T p] := self.inst
+
+-- inference rules
+
 variable [SensitivePolynomialBaseReflection R T]
 variable [SensitivePolynomialClosureReflection R T]
 variable [PolynomialBaseReflection R T]
 variable [PolynomialClosureReflection R T]
-variable (p q : R[X]) [P : Inhabited (T p)] [Q : Inhabited (T q)]
+variable (p q : R[X]) [P : PolyClass T p] [Q : PolyClass T q]
+variable {c : R} {n : ℕ}
 
 variable [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
 @[simp]
-instance instAddLeft : Inhabited (T (p + q)) :=
-  match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_add_left p q h P Q⟩
+instance instAddLeft : PolyClass T (p + q) :=
+  ⟨SensitivePolynomialClosureReflection.mk_add_left p q h P.inst Q.inst⟩
 variable [DegreeLe p] [DegreeEq q] (h : degreeLt p q) in
 @[simp]
-instance instAddRight : Inhabited (T (p + q)) :=
-  match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_add_right p q h P Q⟩
-variable [DegreeEq p] [DegreeEq q] (h : degreeEq p q) in
+instance instAddRight : PolyClass T (p + q) :=
+  ⟨SensitivePolynomialClosureReflection.mk_add_right p q h P.inst Q.inst⟩
+variable [DegreeEq p] [DegreeEq q] in
+variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
 @[simp]
-instance instAddBalanced : Inhabited (T (p + q)) :=
-  match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_add_balanced p q h P Q⟩
+instance instAddSns : PolyClass T (p + q) :=
+  match h : compare (DegreeEq.D p) (DegreeEq.D q) with
+  | Ordering.gt => ⟨
+    @SensitivePolynomialClosureReflection.mk_add_left
+      _ _ _ _ p q
+      _ (degreeLe_of_degreeEq q) ((compare_iff _ _).mp h)
+      P.inst Q.inst ⟩
+  | Ordering.lt => ⟨
+    @SensitivePolynomialClosureReflection.mk_add_right
+      _ _ _ _ p q
+      (degreeLe_of_degreeEq p) _ ((compare_iff _ _).mp h)
+      P.inst Q.inst ⟩
+  | Ordering.eq => ⟨
+    @SensitivePolynomialClosureReflection.mk_add_balanced
+      _ _ _ _ p q
+      _ _ _ _ _ ((compare_iff _ _).mp h)
+      P.inst Q.inst ⟩
 @[simp]
-instance instAdd : Inhabited (T (p + q)) :=
-  match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialClosureReflection.mk_add p q P Q⟩
+instance instAdd : PolyClass T (p + q) :=
+  ⟨PolynomialClosureReflection.mk_add p q P.inst Q.inst⟩
 
 variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
 @[simp]
-instance instMulSns : Inhabited (T (p * q)) :=
-  match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨SensitivePolynomialClosureReflection.mk_mul_sns p q P Q⟩
+instance instMulSns : PolyClass T (p * q) :=
+  ⟨SensitivePolynomialClosureReflection.mk_mul_sns p q P.inst Q.inst⟩
 @[simp]
-instance instMul : Inhabited (T (p * q)) :=
-  match P, Q with
-  | ⟨P⟩, ⟨Q⟩ => ⟨PolynomialClosureReflection.mk_mul p q P Q⟩
+instance instMul : PolyClass T (p * q) :=
+  ⟨PolynomialClosureReflection.mk_mul p q P.inst Q.inst⟩
 
 variable [LeadingCoeff p] [NeZero (leadingCoeffPow p n)] in
 @[simp]
-instance instPowSns : Inhabited (T (p ^ n)) :=
-  match P with
-  | ⟨P⟩ => ⟨SensitivePolynomialClosureReflection.mk_pow_sns p n P⟩
+instance instPowSns : PolyClass T (p ^ n) :=
+  ⟨SensitivePolynomialClosureReflection.mk_pow_sns p n P.inst⟩
 @[simp]
-instance instPow : Inhabited (T (p ^ n)) :=
-  match P with
-  | ⟨P⟩ => ⟨PolynomialClosureReflection.mk_pow p n P⟩
+instance instPow : PolyClass T (p ^ n) :=
+  ⟨PolynomialClosureReflection.mk_pow p n P.inst⟩
 
 @[simp]
-instance instXPowSns [Nontrivial R] : Inhabited (T (X ^ n)) :=
+instance instXPowSns [Nontrivial R] : PolyClass T (X ^ n) :=
   ⟨SensitivePolynomialBaseReflection.mk_XPow_sns n⟩
 @[simp]
-instance instXPow : Inhabited (T (X ^ n)) :=
+instance instXPow : PolyClass T (X ^ n) :=
   ⟨PolynomialBaseReflection.mk_XPow n⟩
 
 @[simp]
-instance instXSns [Nontrivial R] : Inhabited (T X) :=
+instance instXSns [Nontrivial R] : PolyClass T X :=
   ⟨SensitivePolynomialBaseReflection.mk_X_sns⟩
 @[simp]
-instance instX : Inhabited (T X) :=
+instance instX : PolyClass T X :=
   ⟨PolynomialBaseReflection.mk_X⟩
 
 @[simp]
-instance instCNonzero [NeZero c] : Inhabited (T (C c)) :=
-  ⟨SensitivePolynomialBaseReflection.mk_C_nonzero c⟩
+instance instCNonzero [NeZero c] : PolyClass T (C c) :=
+  ⟨SensitivePolynomialBaseReflection.mk_C_sns c⟩
 @[simp]
-instance instC : Inhabited (T (C c)) :=
+instance instC : PolyClass T (C c) :=
   ⟨PolynomialBaseReflection.mk_C c⟩
 @[simp]
-instance instCZero : Inhabited (T (C 0)) :=
-  ⟨SensitivePolynomialBaseReflection.mk_C_zero⟩
+instance instCZero : PolyClass T (C 0) :=
+  C_0.symm.rec ⟨SensitivePolynomialBaseReflection.mk_zero⟩
 
 @[simp]
-instance instOneSns [Nontrivial R] : Inhabited (T 1) :=
-  ⟨SensitivePolynomialBaseReflection.mk_one_sns⟩
+instance instOneSns [Nontrivial R] : PolyClass T 1 :=
+  ⟨SensitivePolynomialBaseReflection.mk_C_sns 1⟩
 @[simp]
-instance instOne : Inhabited (T 1) :=
-  ⟨PolynomialBaseReflection.mk_one⟩
+instance instOne : PolyClass T 1 :=
+  ⟨PolynomialBaseReflection.mk_C 1⟩
 
 @[simp]
-instance instZero : Inhabited (T 0) :=
+instance instZeroSns : PolyClass T 0 :=
   ⟨SensitivePolynomialBaseReflection.mk_zero⟩
+@[simp]
+instance instZero : PolyClass T 0 :=
+  C_0.rec ⟨PolynomialBaseReflection.mk_C 0⟩
 
 end Instances
 
@@ -323,165 +345,53 @@ section Tactics
 syntax "poly_reflect_degree_le" : tactic
 macro_rules
   | `(tactic| poly_reflect_degree_le) =>
-    `(tactic| apply le_trans (@Polynomial.DegreeLe.isLe _ _ _ default); dsimp [Polynomial.DegreeLe.D])
+    `(tactic| apply le_trans (@Polynomial.DegreeLe.isLe _ _ _ Polynomial.PolyClass.inst); dsimp [Polynomial.DegreeLe.D, Polynomial.PolyClass.inst])
 
 syntax "poly_reflect_degree_eq" : tactic
 macro_rules
   | `(tactic| poly_reflect_degree_eq) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ default); dsimp [Polynomial.DegreeEq.D])
+    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ Polynomial.PolyClass.inst); dsimp [Polynomial.DegreeEq.D, Polynomial.PolyClass.inst])
 syntax "poly_reflect_degree_eq_trying" "<:>" tactic : tactic
 macro_rules
   | `(tactic| poly_reflect_degree_eq_trying <:> $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (@default _ (by infer_instance_trying <:> $t))); dsimp [Polynomial.DegreeEq.D])
+    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (Polynomial.PolyClass.instOf (by infer_instance_trying <:> $t))); dsimp [Polynomial.DegreeEq.D, Polynomial.PolyClass.inst])
 syntax "poly_reflect_degree_eq_trying" : tactic
 macro_rules
   | `(tactic| poly_reflect_degree_eq_trying) =>
     `(tactic| poly_reflect_degree_eq_trying <:> ( try_reg ))
 syntax "poly_reflect_degree_eq_of_coeffs" "VIA" term : tactic
 macro_rules
-  | `(tactic| poly_reflect_degree_eq_of_coeffs VIA $f) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (Polynomial.degreeEq_of_normal (default : Polynomial.Coeffs _ $f _))); dsimp [Polynomial.DegreeEq.D])
+  | `(tactic| poly_reflect_degree_eq_of_coeffs VIA $i) =>
+    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (Polynomial.degreeEq_of_normal (Polynomial.PolyClass.instOf $i))); dsimp [Polynomial.DegreeEq.D, Polynomial.PolyClass.inst])
 
 syntax "poly_reflect_leading_coeff" : tactic
 macro_rules
   | `(tactic| poly_reflect_leading_coeff) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ default); dsimp [Polynomial.LeadingCoeff.c])
+    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ Polynomial.PolyClass.inst); dsimp [Polynomial.LeadingCoeff.c, Polynomial.PolyClass.inst])
 syntax "poly_reflect_leading_coeff_trying" "<:>" tactic : tactic
 macro_rules
   | `(tactic| poly_reflect_leading_coeff_trying <:> $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (@default _ (by infer_instance_trying <:> $t))); dsimp [Polynomial.LeadingCoeff.c])
+    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (Polynomial.PolyClass.instOf (by infer_instance_trying <:> $t))); dsimp [Polynomial.LeadingCoeff.c, Polynomial.PolyClass.inst])
 syntax "poly_reflect_leading_coeff_trying" : tactic
 macro_rules
   | `(tactic| poly_reflect_leading_coeff_trying) =>
     `(tactic| poly_reflect_leading_coeff_trying <:> ( try_reg ))
 syntax "poly_reflect_leading_coeff_of_coeffs" "VIA" term : tactic
 macro_rules
-  | `(tactic| poly_reflect_leading_coeff_of_coeffs VIA $f) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (Polynomial.leadingCoeff_of_normal (default : Polynomial.Coeffs _ $f _))); dsimp [Polynomial.LeadingCoeff.c])
+  | `(tactic| poly_reflect_leading_coeff_of_coeffs VIA $i) =>
+    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (Polynomial.leadingCoeff_of_normal (Polynomial.PolyClass.instOf $i))); dsimp [Polynomial.LeadingCoeff.c, Polynomial.PolyClass.inst])
 
 syntax "poly_reflect_coeff" "VIA" term : tactic
 macro_rules
-  | `(tactic| poly_reflect_coeff VIA $f) =>
-    `(tactic| apply Eq.trans (@Polynomial.Coeffs.isEqAt _ _ _ _ _ (default : Polynomial.Coeffs _ $f _) _); simp [Polynomial.Coeffs.C])
+  | `(tactic| poly_reflect_coeff VIA $t) =>
+    `(tactic| apply Eq.trans (@Polynomial.Coeffs.isEqAt _ _ _ _ _ (Polynomial.PolyClass.instAs $t) _); simp [Polynomial.Coeffs.C, Polynomial.PolyClass.inst])
 syntax "poly_reflect_eval" "VIA" term : tactic
 macro_rules
-  | `(tactic| poly_reflect_eval VIA $f) =>
-    `(tactic| apply Eq.trans (@Polynomial.Eval.isEqAt _ _ _ _ _ (default : Polynomial.Eval _ $f _) _); simp [Polynomial.Eval.F])
+  | `(tactic| poly_reflect_eval VIA $i) =>
+    `(tactic| apply Eq.trans (@Polynomial.Eval.isEqAt _ _ _ _ _ (Polynomial.PolyClass.instOf $i) _); simp [Polynomial.Eval.F, Polynomial.PolyClass.inst])
 syntax "poly_reflect_expand" "VIA" term : tactic
 macro_rules
-  | `(tactic| poly_reflect_expand VIA $f) =>
-    `(tactic| apply Eq.trans (Polynomial.PolynomialFormReflection.transform (default : Polynomial.Coeffs _ $f _)).property; simp [Polynomial.Coeffs.C, Polynomial.PolynomialFormReflection.transform])
+  | `(tactic| poly_reflect_expand VIA $i) =>
+    `(tactic| apply Eq.trans (Polynomial.PolynomialFormReflection.transform (Polynomial.PolyClass.instOf $i)).property; simp [Polynomial.Coeffs.C, Polynomial.PolynomialFormReflection.transform, Polynomial.PolyClass.inst])
 
 end Tactics
-
-
-
-
-
-
-
-
-
-
--- SAMPLE
-
-open Polynomial
-variable [Semiring R]
-
-instance instDegreeEqReflection : DegreeEqReflection R where
-
-  mk_zero := ⟨⊥, sorry⟩
-
-  mk_one_sns := ⟨0, sorry⟩
-
-  mk_C_zero := ⟨⊥, sorry⟩
-
-  mk_C_nonzero c := ⟨0, sorry⟩
-
-  mk_X_sns := ⟨1, sorry⟩
-
-  mk_XPow_sns n := ⟨n, sorry⟩
-
-  mk_pow_sns p _ n _ P := ⟨n • P.D, sorry⟩
-
-  mk_mul_sns p q _ _ _ P Q := ⟨P.D + P.D, sorry⟩
-
-  mk_add_left p q _ _ _ P Q := ⟨P.D, sorry⟩
-
-  mk_add_right p q _ _ _ P Q := ⟨Q.D, sorry⟩
-
-  mk_add_balanced p q _ _ _ P Q := ⟨P.D, sorry⟩
-
-instance instLeadingCoeffsReflection : LeadingCoeffReflection R where
-
-  mk_zero := ⟨0, sorry⟩
-
-  mk_one := ⟨1, sorry⟩
-
-  mk_C_zero := ⟨0, sorry⟩
-
-  mk_C c := ⟨c, sorry⟩
-
-  mk_X := ⟨1, sorry⟩
-
-  mk_XPow n := ⟨1, sorry⟩
-
-  mk_pow_sns p _ n _ P := ⟨P.c ^ n, sorry⟩
-
-  mk_mul_sns p q _ _ _ P Q := ⟨P.c * Q.c, sorry⟩
-
-  mk_add_left p q _ _ _ P Q := ⟨P.c, sorry⟩
-
-  mk_add_right p q _ _ _ P Q := ⟨Q.c, sorry⟩
-
-  mk_add_balanced p q _ _ _ P Q := ⟨P.c + Q.c, sorry⟩
-
-example : (X ^ 100 : ℤ[X]).degree = 100 := by poly_reflect_degree_eq
-
-example [Nontrivial R] : (C 1 : R[X]).degree = 0 := by poly_reflect_degree_eq
-example : (X : R[X]).leadingCoeff = 1 := by poly_reflect_leading_coeff
--- FAILS
-
-instance : LeadingCoeff (1 : R[X]) := @default _ (by infer_instance_trying)
-example : NeZero (leadingCoeffPow (1 : ℤ[X]) 2) := by try_reg
-example [Nontrivial R] : Inhabited (LeadingCoeff (X * X : ℤ[X])) := by sorry
-
-@[simp]
-def f_list (C : List R) (n : ℕ) := C[n]?.getD 0
-
-noncomputable instance instCoeffsReflection_list : CoeffsReflection (List R) f_list where
-
-  mk_zero := ⟨[], sorry⟩
-
-  mk_one := ⟨[1], sorry⟩
-
-  mk_C_zero := ⟨[], sorry⟩
-
-  mk_C c := ⟨[c], sorry⟩
-
-  mk_X := ⟨[0, 1], sorry⟩
-
-  mk_XPow n := ⟨List.replicate n 0 ++ [1], sorry⟩
-
-  mk_pow p n P := ⟨Coeffs.powAux n P.C, sorry⟩
-
-  mk_mul p q P Q := ⟨Coeffs.mulAux P.C Q.C, sorry⟩
-
-  mk_add p q P Q := ⟨Coeffs.addAux P.C Q.C, sorry⟩
-
-  mk_norm p := ⟨
-    { T | match T.C.reverse with | [] => True | c :: _ => c ≠ 0 },
-    fun T => ⟨⟨(T.C.reverse.dropWhile (Eq 0 : R → Prop)).reverse, sorry⟩, sorry⟩,
-    sorry ⟩
-
-  degreeEq_of_normal := by intro _ _ ⟨T, _⟩; exact ⟨
-    match T.C.reverse with | [] => ⊥ | _ :: cs => cs.length,
-    sorry ⟩
-
-  leadingCoeff_of_normal := by intro _ _ ⟨T, _⟩; exact ⟨
-    match T.C.reverse with | [] => 0 | c :: _ => c,
-    sorry ⟩
-
-  transform T := ⟨Coeffs.expandAux T.C 0, sorry⟩
-
-example : ((C 2 * X) ^ 2 : ℤ[X]) = C 4 * X ^ 2 := by poly_reflect_expand VIA f_list; unfold_expand_aux; simp

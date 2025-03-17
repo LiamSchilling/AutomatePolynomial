@@ -1,5 +1,56 @@
+import AutomatePolynomial.Reflection.Polynomial
 import AutomatePolynomial.Core.Polynomial
 
+open Polynomial
+
+variable [Semiring R]
+
+abbrev CoeffsList := Coeffs (List R) (List.getD . 0 .)
+
+noncomputable instance instCoeffsListReflection : CoeffsNormalReflection R (List R) ident where
+
+  mk_C c := {
+    C := [c]
+    isEq := sorry }
+
+  mk_X := {
+    C := [0, 1]
+    isEq := sorry }
+
+  mk_XPow N := {
+    C := List.replicate N 0 ++ [1]
+    isEq := sorry }
+
+  mk_pow _ n P := {
+    C := Coeffs.powAux n P.C
+    isEq := sorry }
+
+  mk_mul _ _ P Q := {
+    C := Coeffs.mulAux P.C Q.C
+    isEq := sorry }
+
+  mk_add _ _ P Q := {
+    C := Coeffs.addAux P.C Q.C
+    isEq := sorry }
+
+  mk_norm p := {
+    Normal := { T | match T.C.reverse with | [] => True | c :: _ => 0 ≠ c }
+    normalize T := ⟨⟨(T.C.reverse.dropWhile (Eq 0 : R → Prop)).reverse, sorry⟩, sorry⟩
+    normalize_idempotent := sorry }
+
+  degreeEq_of_normal := by
+    intro _ _ ⟨T, _⟩; exact
+    ⟨match T.C with | [] => ⊥ | _ :: cs => cs.length, sorry⟩
+
+  leadingCoeff_of_normal := by
+    intro _ _ ⟨T, _⟩; exact
+    ⟨match T.C with | [] => 0 | c :: _ => c, sorry⟩
+
+  transform T := ⟨
+    Coeffs.expandAux T.C 0,
+    sorry ⟩
+
+/-
 namespace Polynomial
 
 variable [Semiring R]
@@ -139,3 +190,4 @@ instance instCoeffsAdd : Coeffs (p + q) where
 end Coeffs
 
 end Polynomial
+-/

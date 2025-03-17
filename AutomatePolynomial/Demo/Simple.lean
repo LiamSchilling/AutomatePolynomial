@@ -7,7 +7,8 @@ section Coeffs
 variable [Semiring R]
 
 -- base cases
-example : (0 : R[X]).coeff 0 = 0   := by reflect_coeff
+example : (0 : R[X]).coeff 0 = 0   := by poly_reflect_coeff VIA CoeffList
+  --apply Eq.trans (@Polynomial.Coeffs.isEqAt _ _ _ _ _ (Polynomial.PolyClass.instAs CoeffsList) _); simp [Polynomial.Coeffs.C, Polynomial.PolyClass.inst]
 example : (0 : R[X]).coeff 1 = 0   := by reflect_coeff
 example : (1 : R[X]).coeff 0 = 1   := by reflect_coeff
 example : (1 : R[X]).coeff 1 = 0   := by reflect_coeff
