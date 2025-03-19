@@ -1,10 +1,16 @@
-import AutomatePolynomial.Reflection.Polynomial
+import AutomatePolynomial.Reflection.Polynomial.Defs
 
-open Polynomial
+namespace Polynomial
 
 variable [Semiring R]
 
+abbrev EvalArrow := Eval (R → R) id
+
 instance instEvalArrowReflection : EvalReflection R (R → R) id where
+
+  mk_zero := {
+    F _ := 0
+    isEq := by simp }
 
   mk_C c := {
     F _ := c
@@ -29,6 +35,8 @@ instance instEvalArrowReflection : EvalReflection R (R → R) id where
   mk_add _ _ P Q := {
     F x := P.F x + Q.F x
     isEq := by simp; funext; sorry }
+
+end Polynomial
 
 /-
 namespace Polynomial

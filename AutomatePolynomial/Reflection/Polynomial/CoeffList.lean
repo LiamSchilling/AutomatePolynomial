@@ -1,13 +1,17 @@
-import AutomatePolynomial.Reflection.Polynomial
+import AutomatePolynomial.Reflection.Polynomial.Defs
 import AutomatePolynomial.Core.Polynomial
 
-open Polynomial
+namespace Polynomial
 
 variable [Semiring R]
 
-abbrev CoeffsList := Coeffs (List R) (List.getD . 0 .)
+abbrev CoeffsList := Coeffs (List R) (List.getD . . 0)
 
-noncomputable instance instCoeffsListReflection : CoeffsNormalReflection R (List R) (List.getD . 0 .) where
+noncomputable instance instCoeffsListReflection : CoeffsNormalReflection R (List R) (List.getD . . 0) where
+
+  mk_zero := {
+    C := []
+    isEq := sorry }
 
   mk_C c := {
     C := [c]
@@ -44,11 +48,13 @@ noncomputable instance instCoeffsListReflection : CoeffsNormalReflection R (List
 
   leadingCoeff_of_normal := by
     intro _ _ ⟨T, _⟩; exact
-    ⟨match T.C with | [] => 0 | c :: _ => c, sorry⟩
+    ⟨match T.C.reverse with | [] => 0 | c :: _ => c, sorry⟩
 
   transform T := ⟨
     Coeffs.expandAux T.C 0,
     sorry ⟩
+
+end Polynomial
 
 /-
 namespace Polynomial

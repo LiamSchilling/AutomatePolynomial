@@ -1,4 +1,4 @@
-import AutomatePolynomial.Reflection.MvLemmas
+import AutomatePolynomial.Reflection.MvPolynomial.Basic
 
 open MvPolynomial
 

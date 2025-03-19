@@ -1,10 +1,14 @@
-import AutomatePolynomial.Reflection.Polynomial
+import AutomatePolynomial.Reflection.Polynomial.Defs
 
-open Polynomial
+namespace Polynomial
 
 variable [Semiring R]
 
 instance instDegreeLeReflection : DegreeLeReflection R where
+
+  mk_zero := {
+    D := ⊥
+    isLe := C_0.symm.rec ((degree_le_iff_coeff_zero 0 ⊥).mpr (fun _ => congrFun rfl)) }
 
   mk_C _ := {
     D := 0
@@ -37,17 +41,17 @@ instance instDegreeEqReflection : DegreeEqReflection R where
 
   mk_zero := {
     D := ⊥
-    isEq := degree_zero }
+    isEq := C_0.symm.rec degree_zero }
 
-  mk_C_sns c := {
+  mk_C c := {
     D := 0
     isEq := degree_C (NeZero.ne c) }
 
-  mk_X_sns := {
+  mk_X := {
     D := 1
     isEq := degree_X }
 
-  mk_XPow_sns n := {
+  mk_XPow n := {
     D := n
     isEq :=
       Eq.trans (
@@ -56,14 +60,14 @@ instance instDegreeEqReflection : DegreeEqReflection R where
             (one_pow n).symm.rec one_ne_zero ) ) ) (
         degree_X.symm.rec ((nsmul_eq_mul n 1).symm.rec (mul_one _)) ) }
 
-  mk_pow_sns p _ n _ P := {
+  mk_pow p _ n _ P := {
     D := n • P.D
     isEq :=
       DegreeEq.isEq.rec (degree_pow' (
         LeadingCoeff.isEq.symm.rec (
           NeZero.ne (leadingCoeffPow p n) ) )) }
 
-  mk_mul_sns p q _ _ _ P Q := {
+  mk_mul p q _ _ _ P Q := {
     D := P.D + Q.D
     isEq :=
       DegreeEq.isEq.rec (DegreeEq.isEq.rec (degree_mul' (
@@ -84,6 +88,10 @@ instance instDegreeEqReflection : DegreeEqReflection R where
 
 instance instLeadingCoeffRefelction : LeadingCoeffReflection R where
 
+  mk_zero := {
+    c := 0
+    isEq := leadingCoeff_C 0 }
+
   mk_C c := {
     c := c
     isEq := leadingCoeff_C c }
@@ -99,7 +107,7 @@ instance instLeadingCoeffRefelction : LeadingCoeffReflection R where
         show _ = X.leadingCoeff ^ n by sorry ) (
         leadingCoeff_X.symm.rec (one_pow n) ) }
 
-  mk_pow_sns p P n _ _ := {
+  mk_pow p P n _ _ := {
     c := P.c ^ n
     isEq := by
       revert P; intro P _; exact
@@ -107,7 +115,7 @@ instance instLeadingCoeffRefelction : LeadingCoeffReflection R where
         LeadingCoeff.isEq.symm.rec (
           NeZero.ne (leadingCoeffPow p n) ) )) }
 
-  mk_mul_sns p q P Q _ _ _ := {
+  mk_mul p q P Q _ _ _ := {
     c := P.c * Q.c
     isEq := by
       revert P Q; intro P Q _; exact
@@ -137,6 +145,8 @@ instance instLeadingCoeffRefelction : LeadingCoeffReflection R where
         leadingCoeff_add_of_degree_eq (apply_degreeEq h) (
           LeadingCoeff.isEq.symm.rec (LeadingCoeff.isEq.symm.rec (
             NeZero.ne (leadingCoeffAdd p q) )) ) )) }
+
+end Polynomial
 
 /-
 namespace Polynomial

@@ -1,5 +1,5 @@
-import AutomatePolynomial.Reflection.MvCoeff
-import AutomatePolynomial.Reflection.MvDegree
+import AutomatePolynomial.Reflection.MvPolynomial.Coeff
+import AutomatePolynomial.Reflection.MvPolynomial.Degree
 import AutomatePolynomial.Tactic.InferInstance
 
 syntax "reflect_mv_coeff" : tactic

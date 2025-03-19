@@ -1,10 +1,16 @@
-import AutomatePolynomial.Reflection.Polynomial
+import AutomatePolynomial.Reflection.Polynomial.Defs
 
-open Polynomial
+namespace Polynomial
 
 variable [Semiring R]
 
+abbrev CoeffsArrow := Coeffs (ℕ → R) id
+
 instance instCoeffsArrowReflection : CoeffsReflection R (ℕ → R) id where
+
+  mk_zero := {
+    C _ := 0
+    isEq := sorry }
 
   mk_C c := {
     C n := if n = 0 then c else 0
@@ -29,3 +35,5 @@ instance instCoeffsArrowReflection : CoeffsReflection R (ℕ → R) id where
   mk_add _ _ P Q := {
     C n := P.C n + Q.C n
     isEq := sorry }
+
+end Polynomial
