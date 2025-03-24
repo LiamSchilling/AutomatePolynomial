@@ -39,22 +39,3 @@ end Lean.MVarId
 -- trying a provided tactic to resolve those that fail
 elab "infer_instance_trying" "<:>" t:tactic : tactic => do
   (← getMainGoal).synthInstanceTrying t
-
--- intended for combination with infer_instance_trying
--- tries some regular tactics
-syntax "try_reg" : tactic
-macro_rules
-  | `(tactic| try_reg) =>
-    `(tactic|
-      (try simp) <;>
-      (try trivial) <;>
-      (try constructor) <;>
-      (try simp) <;>
-      (try trivial) )
-
--- recursively synthesize type class instances
--- slightly stronger than normal inferInstance
-syntax "infer_instance_trying" : tactic
-macro_rules
-  | `(tactic| infer_instance_trying) =>
-    `(tactic| infer_instance_trying <:> ( try_reg ))

@@ -1,5 +1,50 @@
-import AutomatePolynomial.Core.MvPolynomial
+import AutomatePolynomial.Reflection.MvPolynomial.Defs
 
+namespace MvPolynomial
+
+variable [CommSemiring R]
+
+instance instMvDegreeLeReflection (i : σ) : MvDegreeLeReflection R i where
+
+  mk_zero := {
+    D := 0
+    isLe := sorry }
+
+  mk_C _ := {
+    D := 0
+    isLe := sorry }
+
+  mk_X := {
+    D := 1
+    isLe := sorry }
+
+  mk_XNe _ := {
+    D := 0
+    isLe := sorry }
+
+  mk_XPow n := {
+    D := n
+    isLe := sorry }
+
+  mk_XPowNe n _ := {
+    D := 0
+    isLe := sorry }
+
+  mk_pow _ n P := {
+    D := n * P.D
+    isLe := sorry }
+
+  mk_mul _ _ P Q := {
+    D := P.D + Q.D
+    isLe := sorry }
+
+  mk_add _ _ P Q := {
+    D := max P.D Q.D
+    isLe := sorry }
+
+end MvPolynomial
+
+/-
 namespace MvPolynomial
 
 variable [CommSemiring R] [Nontrivial R]
@@ -79,3 +124,4 @@ instance instMvDegreeLeAdd : MvDegreeLe (p + q) i where
 end DegreeLe
 
 end MvPolynomial
+-/

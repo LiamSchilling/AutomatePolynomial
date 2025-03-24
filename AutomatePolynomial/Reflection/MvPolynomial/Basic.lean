@@ -2,6 +2,7 @@ import AutomatePolynomial.Reflection.MvPolynomial.Coeff
 import AutomatePolynomial.Reflection.MvPolynomial.Degree
 import AutomatePolynomial.Tactic.InferInstance
 
+/-
 syntax "reflect_mv_coeff" : tactic
 macro_rules
   | `(tactic| reflect_mv_coeff) =>
@@ -20,3 +21,4 @@ syntax "reflect_mv_degree_le_trying" : tactic
 macro_rules
   | `(tactic| reflect_mv_degree_le_trying) =>
     `(tactic| reflect_mv_degree_le_trying <:> ( try_reg ))
+-/

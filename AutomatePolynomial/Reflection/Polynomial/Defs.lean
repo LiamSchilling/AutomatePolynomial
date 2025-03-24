@@ -1,5 +1,4 @@
 import AutomatePolynomial.Reflection.NormalForm
-import AutomatePolynomial.Tactic.InferInstance
 import AutomatePolynomial.WithBot.Basic
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
 
@@ -43,6 +42,34 @@ lemma Coeffs.isEqAt {p : R[X]} [self : Coeffs α f p] (n : ℕ) :
 lemma Eval.isEqAt {p : R[X]} [self : Eval α f p] (x : R) :
     p.eval x = f self.F x :=
   congrFun Eval.isEq x
+
+lemma DegreeLe.isLeOf {p : R[X]} (self : DegreeLe p) :
+    p.degree ≤ self.D :=
+  self.isLe
+
+lemma DegreeEq.isEqOf {p : R[X]} (self : DegreeEq p) :
+    p.degree = self.D :=
+  self.isEq
+
+lemma LeadingCoeff.isEqOf {p : R[X]} (self : LeadingCoeff p) :
+    p.leadingCoeff = self.c :=
+  self.isEq
+
+lemma Coeffs.isEqOf {p : R[X]} (self : Coeffs α f p) :
+    p.coeff = f self.C :=
+  self.isEq
+
+lemma Eval.isEqOf {p : R[X]} (self : Eval α f p) :
+    p.eval = f self.F :=
+  self.isEq
+
+lemma Coeffs.isEqAtOf {p : R[X]} (self : Coeffs α f p) (n : ℕ) :
+    p.coeff n = f self.C n :=
+  self.isEqAt n
+
+lemma Eval.isEqAtOf {p : R[X]} (self : Eval α f p) (x : R) :
+    p.eval x = f self.F x :=
+  self.isEqAt x
 
 end Classes
 
@@ -251,16 +278,38 @@ variable [PolynomialClosureReflection R T]
 variable (p q : R[X]) [P : PolyClass T p] [Q : PolyClass T q]
 variable {c : R} {n : ℕ}
 
-variable [DegreeEq p] [DegreeLe q] (h : degreeLt q p) in
+@[simp]
+instance instDegreeLeOfPolyClass [PolyClass DegreeLe p] :
+    DegreeLe p :=
+  PolyClass.inst
+@[simp]
+instance instDegreeEqOfPolyClass [PolyClass DegreeEq p] :
+    DegreeEq p :=
+  PolyClass.inst
+@[simp]
+instance instLeadingCoeffOfPolyClass [PolyClass LeadingCoeff p] :
+    LeadingCoeff p :=
+  PolyClass.inst
+@[simp]
+instance instCoeffsOfPolyClass [PolyClass (Coeffs α f) p] :
+    Coeffs α f p :=
+  PolyClass.inst
+@[simp]
+instance instEvalOfPolyClass [PolyClass (Eval α f) p] :
+    Eval α f p :=
+  PolyClass.inst
+
+variable [PolyClass DegreeEq p] [PolyClass DegreeLe q] (h : degreeLt q p) in
 @[simp]
 instance instAddLeft : PolyClass T (p + q) :=
   ⟨SensitivePolynomialClosureReflection.mk_add_left p q h P.inst Q.inst⟩
-variable [DegreeLe p] [DegreeEq q] (h : degreeLt p q) in
+variable [PolyClass DegreeLe p] [PolyClass DegreeEq q] (h : degreeLt p q) in
 @[simp]
 instance instAddRight : PolyClass T (p + q) :=
   ⟨SensitivePolynomialClosureReflection.mk_add_right p q h P.inst Q.inst⟩
-variable [DegreeEq p] [DegreeEq q] in
-variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffAdd p q)] in
+variable [PolyClass DegreeEq p] [PolyClass DegreeEq q] in
+variable [PolyClass LeadingCoeff p] [PolyClass LeadingCoeff q] in
+variable [NeZero (leadingCoeffAdd p q)] in
 @[simp]
 instance instAddSns : PolyClass T (p + q) :=
   match h : compare (DegreeEq.D p) (DegreeEq.D q) with
@@ -283,7 +332,8 @@ instance instAddSns : PolyClass T (p + q) :=
 instance instAdd : PolyClass T (p + q) :=
   ⟨PolynomialClosureReflection.mk_add p q P.inst Q.inst⟩
 
-variable [LeadingCoeff p] [LeadingCoeff q] [NeZero (leadingCoeffMul p q)] in
+variable [PolyClass LeadingCoeff p] [PolyClass LeadingCoeff q] in
+variable [NeZero (leadingCoeffMul p q)] in
 @[simp]
 instance instMulSns : PolyClass T (p * q) :=
   ⟨SensitivePolynomialClosureReflection.mk_mul p q P.inst Q.inst⟩
@@ -291,7 +341,7 @@ instance instMulSns : PolyClass T (p * q) :=
 instance instMul : PolyClass T (p * q) :=
   ⟨PolynomialClosureReflection.mk_mul p q P.inst Q.inst⟩
 
-variable [LeadingCoeff p] [NeZero (leadingCoeffPow p n)] in
+variable [PolyClass LeadingCoeff p] [NeZero (leadingCoeffPow p n)] in
 @[simp]
 instance instPowSns : PolyClass T (p ^ n) :=
   ⟨SensitivePolynomialClosureReflection.mk_pow p n P.inst⟩
@@ -330,106 +380,3 @@ instance instZero : PolyClass T (C 0) :=
 end Instances
 
 end Polynomial
-
--- tactics to employ reflection system
-
-section Tactics
-
-open Polynomial
-
-variable [Semiring R] {T : R[X] → Type*} (p : R[X])
-
-syntax "poly_rw_C" : tactic
-macro_rules
-  | `(tactic| poly_rw_C) =>
-    `(tactic|
-      (try rw[←Polynomial.C_0]);
-      (try rw[←Polynomial.C_1]) )
-syntax "poly_dsimp_inst" "[" Lean.Parser.Tactic.simpLemma,* "]" : tactic
-macro_rules
-  | `(tactic| poly_dsimp_inst [$ids,*]) =>
-    `(tactic|
-      dsimp [
-        Polynomial.DegreeLe.D,
-        Polynomial.DegreeEq.D,
-        Polynomial.LeadingCoeff.c,
-        Polynomial.Coeffs.C,
-        Polynomial.Eval.F,
-        Polynomial.PolynomialFormReflection.transform,
-        Polynomial.PolyClass.inst,
-        $ids,* ] )
-syntax "poly_dsimp_inst" : tactic
-macro_rules
-  | `(tactic| poly_dsimp_inst) =>
-    `(tactic| poly_dsimp_inst [ ])
-
-syntax "poly_reflect_with" "[" Lean.Parser.Tactic.simpLemma,* "]" "<:>" tactic : tactic
-macro_rules
-  | `(tactic| poly_reflect_with [$ids,*] <:> $t) =>
-    `(tactic| poly_rw_C; $t; poly_dsimp_inst [$ids,*])
-syntax "poly_reflect_with" "<:>" tactic : tactic
-macro_rules
-  | `(tactic| poly_reflect_with <:> $t) =>
-    `(tactic| poly_reflect_with [ ] <:> $t)
-syntax "poly_reflect_with_sns" "[" Lean.Parser.Tactic.simpLemma,* "]" "<:>" tactic : tactic
-macro_rules
-  | `(tactic| poly_reflect_with_sns [$ids,*] <:> $t) =>
-    `(tactic| poly_reflect_with [compare, compareOfLessAndEq, $ids,*] <:> $t)
-syntax "poly_reflect_with_sns" "<:>" tactic : tactic
-macro_rules
-  | `(tactic| poly_reflect_with_sns <:> $t) =>
-    `(tactic| poly_reflect_with_sns [ ] <:> $t)
-
-syntax "poly_reflect_degree_le" : tactic
-macro_rules
-  | `(tactic| poly_reflect_degree_le) =>
-    `(tactic| apply le_trans (@Polynomial.DegreeLe.isLe _ _ _ Polynomial.PolyClass.inst))
-
-syntax "poly_reflect_degree_eq" : tactic
-macro_rules
-  | `(tactic| poly_reflect_degree_eq) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ Polynomial.PolyClass.inst))
-syntax "poly_reflect_degree_eq_trying" "<:>" tactic : tactic
-macro_rules
-  | `(tactic| poly_reflect_degree_eq_trying <:> $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (Polynomial.PolyClass.instOf (by infer_instance_trying <:> $t))))
-syntax "poly_reflect_degree_eq_trying" : tactic
-macro_rules
-  | `(tactic| poly_reflect_degree_eq_trying) =>
-    `(tactic| poly_reflect_degree_eq_trying <:> ( try_reg ))
-syntax "poly_reflect_degree_eq_of_coeffs" "VIA" term : tactic
-macro_rules
-  | `(tactic| poly_reflect_degree_eq_of_coeffs VIA $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.DegreeEq.isEq _ _ _ (Polynomial.degreeEq_of_normal (Polynomial.PolyClass.instAs $t))))
-
-syntax "poly_reflect_leading_coeff" : tactic
-macro_rules
-  | `(tactic| poly_reflect_leading_coeff) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ Polynomial.PolyClass.inst))
-syntax "poly_reflect_leading_coeff_trying" "<:>" tactic : tactic
-macro_rules
-  | `(tactic| poly_reflect_leading_coeff_trying <:> $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (Polynomial.PolyClass.instOf (by infer_instance_trying <:> $t))))
-syntax "poly_reflect_leading_coeff_trying" : tactic
-macro_rules
-  | `(tactic| poly_reflect_leading_coeff_trying) =>
-    `(tactic| poly_reflect_leading_coeff_trying <:> ( try_reg ))
-syntax "poly_reflect_leading_coeff_of_coeffs" "VIA" term : tactic
-macro_rules
-  | `(tactic| poly_reflect_leading_coeff_of_coeffs VIA $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.LeadingCoeff.isEq _ _ _ (Polynomial.leadingCoeff_of_normal (Polynomial.PolyClass.instAs $t))))
-
-syntax "poly_reflect_coeff" "VIA" term : tactic
-macro_rules
-  | `(tactic| poly_reflect_coeff VIA $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.Coeffs.isEqAt _ _ _ _ _ (Polynomial.PolyClass.instAs $t) _))
-syntax "poly_reflect_eval" "VIA" term : tactic
-macro_rules
-  | `(tactic| poly_reflect_eval VIA $t) =>
-    `(tactic| apply Eq.trans (@Polynomial.Eval.isEqAt _ _ _ _ _ (Polynomial.PolyClass.instAs $t) _))
-syntax "poly_reflect_expand" "VIA" term : tactic
-macro_rules
-  | `(tactic| poly_reflect_expand VIA $t) =>
-    `(tactic| apply Eq.trans (Polynomial.PolynomialFormReflection.transform (Polynomial.PolyClass.instAs $t)).property)
-
-end Tactics
