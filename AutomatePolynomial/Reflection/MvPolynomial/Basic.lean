@@ -1,6 +1,9 @@
-import AutomatePolynomial.Reflection.MvPolynomial.Coeff
-import AutomatePolynomial.Reflection.MvPolynomial.Degree
-import AutomatePolynomial.Tactic.InferInstance
+import AutomatePolynomial.Reflection.MvPolynomial.CoeffArrow
+import AutomatePolynomial.Reflection.MvPolynomial.CoeffHyperlist
+import AutomatePolynomial.Reflection.MvPolynomial.Degrees
+import AutomatePolynomial.Reflection.MvPolynomial.TotalDegree
+import AutomatePolynomial.Reflection.MvPolynomial.EvalArrow
+import AutomatePolynomial.Reflection.MvPolynomial.Tactic
 
 /-
 syntax "reflect_mv_coeff" : tactic

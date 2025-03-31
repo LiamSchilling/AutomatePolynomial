@@ -4,9 +4,9 @@ namespace Polynomial
 
 variable [Semiring R]
 
-abbrev CoeffsArrow := Coeffs (ℕ → R) id
+abbrev CoeffsArrow := Coeffs (fun _ => ℕ → R) (fun _ C => C)
 
-instance instCoeffsArrowReflection : CoeffsReflection R (ℕ → R) id where
+instance instCoeffsArrowReflection : CoeffsReflection R (fun _ => ℕ → R) (fun _ C => C) where
 
   mk_zero := {
     C _ := 0

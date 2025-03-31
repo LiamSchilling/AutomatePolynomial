@@ -33,11 +33,11 @@ macro_rules
     `(tactic| poly_rw_C; $t; poly_dsimp_inst [$ids,*])
 
 syntax
-    "poly_reflect_with_sns" "[" Lean.Parser.Tactic.simpLemma,* "]"
+    "poly_reflect_with_cmp" "[" Lean.Parser.Tactic.simpLemma,* "]"
     "<:>" tactic :
   tactic
 macro_rules
-  | `(tactic| poly_reflect_with_sns [$ids,*] <:> $t) =>
+  | `(tactic| poly_reflect_with_cmp [$ids,*] <:> $t) =>
     `(tactic| poly_reflect_with [compare, compareOfLessAndEq, $ids,*] <:> $t)
 
 -- intended for combination with infer_instance_trying
@@ -67,7 +67,7 @@ syntax "poly_reflect_degree_eq" : tactic
 macro_rules
   | `(tactic| poly_reflect_degree_eq) =>
     `(tactic|
-      poly_reflect_with_sns []
+      poly_reflect_with_cmp []
       <:> apply Eq.trans (Polynomial.DegreeEq.isEqOf
         Polynomial.PolyClass.inst ) )
 
@@ -75,7 +75,7 @@ syntax "poly_reflect_degree_eq_trying" "<:>" tactic : tactic
 macro_rules
   | `(tactic| poly_reflect_degree_eq_trying <:> $t) =>
     `(tactic|
-      poly_reflect_with_sns []
+      poly_reflect_with_cmp []
       <:> apply Eq.trans (Polynomial.DegreeEq.isEqOf (
         Polynomial.PolyClass.instOf (by infer_instance_trying <:> $t) )) )
 
@@ -83,7 +83,7 @@ syntax "poly_reflect_degree_eq_of_coeffs" "VIA" term : tactic
 macro_rules
   | `(tactic| poly_reflect_degree_eq_of_coeffs VIA $t) =>
     `(tactic|
-      poly_reflect_with_sns []
+      poly_reflect_with_cmp []
       <:> apply Eq.trans (Polynomial.DegreeEq.isEqOf (
         Polynomial.degreeEq_of_normal (Polynomial.PolyClass.instAs $t) )) )
 
@@ -95,7 +95,7 @@ syntax "poly_reflect_leading_coeff" : tactic
 macro_rules
   | `(tactic| poly_reflect_leading_coeff) =>
     `(tactic|
-      poly_reflect_with_sns []
+      poly_reflect_with_cmp []
       <:> apply Eq.trans (Polynomial.LeadingCoeff.isEqOf
         Polynomial.PolyClass.inst ) )
 
@@ -103,7 +103,7 @@ syntax "poly_reflect_leading_coeff_trying" "<:>" tactic : tactic
 macro_rules
   | `(tactic| poly_reflect_leading_coeff_trying <:> $t) =>
     `(tactic|
-      poly_reflect_with_sns []
+      poly_reflect_with_cmp []
       <:> apply Eq.trans (Polynomial.LeadingCoeff.isEqOf (
         Polynomial.PolyClass.instOf (by infer_instance_trying <:> $t) )) )
 
@@ -111,7 +111,7 @@ syntax "poly_reflect_leading_coeff_of_coeffs" "VIA" term : tactic
 macro_rules
   | `(tactic| poly_reflect_leading_coeff_of_coeffs VIA $t) =>
     `(tactic|
-      poly_reflect_with_sns []
+      poly_reflect_with_cmp []
       <:> apply Eq.trans (Polynomial.LeadingCoeff.isEqOf (
         Polynomial.leadingCoeff_of_normal (Polynomial.PolyClass.instAs $t) )) )
 

@@ -24,23 +24,23 @@ class LeadingCoeff (p : R[X]) where
   isEq : p.leadingCoeff = c
 
 -- computable representation of polynomial coefficients
-class Coeffs (α : Type*) (f : α → ℕ → R) (p : R[X]) where
-  C : α
-  isEq : p.coeff = f C
+class Coeffs (α : R[X] → Type*) (f : ∀ p, α p → ℕ → R) (p : R[X]) where
+  C : α p
+  isEq : p.coeff = f p C
 
 -- computable representation of polynomial evaluation
-class Eval (α : Type*) (f : α → R → R) (p : R[X]) where
-  F : α
-  isEq : p.eval = f F
+class Eval (α : R[X] → Type*) (f : ∀ p, α p → R → R) (p : R[X]) where
+  F : α p
+  isEq : p.eval = f p F
 
 -- helper for Coeffs assertion
 lemma Coeffs.isEqAt {p : R[X]} [self : Coeffs α f p] (n : ℕ) :
-    p.coeff n = f self.C n :=
+    p.coeff n = f p self.C n :=
   congrFun Coeffs.isEq n
 
 -- helper for Eval assertion
 lemma Eval.isEqAt {p : R[X]} [self : Eval α f p] (x : R) :
-    p.eval x = f self.F x :=
+    p.eval x = f p self.F x :=
   congrFun Eval.isEq x
 
 lemma DegreeLe.isLeOf {p : R[X]} (self : DegreeLe p) :
@@ -56,19 +56,19 @@ lemma LeadingCoeff.isEqOf {p : R[X]} (self : LeadingCoeff p) :
   self.isEq
 
 lemma Coeffs.isEqOf {p : R[X]} (self : Coeffs α f p) :
-    p.coeff = f self.C :=
+    p.coeff = f p self.C :=
   self.isEq
 
 lemma Eval.isEqOf {p : R[X]} (self : Eval α f p) :
-    p.eval = f self.F :=
+    p.eval = f p self.F :=
   self.isEq
 
 lemma Coeffs.isEqAtOf {p : R[X]} (self : Coeffs α f p) (n : ℕ) :
-    p.coeff n = f self.C n :=
+    p.coeff n = f p self.C n :=
   self.isEqAt n
 
 lemma Eval.isEqAtOf {p : R[X]} (self : Eval α f p) (x : R) :
-    p.eval x = f self.F x :=
+    p.eval x = f p self.F x :=
   self.isEqAt x
 
 end Classes
@@ -117,7 +117,7 @@ def degreeLe_of_degreeEq (p : R[X]) [DegreeEq p] : DegreeLe p where
 section Systems
 
 variable (R : Type*) [Semiring R] (T : R[X] → Type*)
-variable (α : Type*)
+variable (α : R[X] → Type*)
 
 -- normal form for descriptions of polynomials
 -- degree and leading coefficient derivations from normal forms
@@ -238,16 +238,16 @@ class LeadingCoeffReflection extends
     PolynomialBaseReflection R LeadingCoeff,
     SensitivePolynomialClosureReflection R LeadingCoeff
 
-class CoeffsReflection (f : α → ℕ → R) extends
+class CoeffsReflection (f : ∀ p, α p → ℕ → R) extends
     PolynomialBaseReflection R (Coeffs α f),
     PolynomialClosureReflection R (Coeffs α f)
 
-class CoeffsNormalReflection (f : α → ℕ → R) extends
+class CoeffsNormalReflection (f : ∀ p, α p → ℕ → R) extends
     CoeffsReflection R α f,
     PolynomialNormalReflection R (Coeffs α f),
     PolynomialFormReflection R (Coeffs α f)
 
-class EvalReflection (f : α → R → R) extends
+class EvalReflection (f : ∀ p, α p → R → R) extends
     PolynomialBaseReflection R (Eval α f),
     PolynomialClosureReflection R (Eval α f)
 

@@ -54,6 +54,8 @@ end List
 
 namespace Tree
 
+attribute [simp] map
+
 -- DECONSTRUCTION
 
 -- delete the head index slice (like tail)

@@ -4,7 +4,7 @@ namespace MvPolynomial
 
 variable [CommSemiring R]
 
-instance instMvDegreeLeReflection (i : σ) : MvDegreeLeReflection R i where
+instance instMvTotalDegreeLeReflection : MvTotalDegreeLeReflection σ R where
 
   mk_zero := {
     D := 0
@@ -14,20 +14,12 @@ instance instMvDegreeLeReflection (i : σ) : MvDegreeLeReflection R i where
     D := 0
     isLe := sorry }
 
-  mk_X := {
+  mk_X j := {
     D := 1
     isLe := sorry }
 
-  mk_XNe _ := {
-    D := 0
-    isLe := sorry }
-
-  mk_XPow n := {
+  mk_XPow j n := {
     D := n
-    isLe := sorry }
-
-  mk_XPowNe n _ := {
-    D := 0
     isLe := sorry }
 
   mk_pow _ n P := {

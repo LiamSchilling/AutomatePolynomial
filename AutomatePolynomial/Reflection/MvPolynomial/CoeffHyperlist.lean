@@ -2,56 +2,51 @@ import AutomatePolynomial.Reflection.MvPolynomial.VarList
 
 namespace MvPolynomial
 
-variable (R : Type*) [CommSemiring R]
-variable (σ : Type*) [LinearOrder σ]
+variable [LinearOrder σ]
+variable [CommSemiring R]
 
-abbrev MvCoeffsHyperlistType := fun (_ : MvVarsLeListType σ) => Hyperlist R
-abbrev MvVoeffsHyperlistTransform : (V : MvVarsLeListType σ) → MvCoeffsHyperlistType R σ V → (σ →₀ ℕ) → R := fun ⟨I, _⟩ C m => (C.get? (I.map m)).getD 0
-abbrev MvCoeffsHyperlist (p : MvPolynomial σ R) := MvCoeffs (MvVarsLeListType σ) (MvCoeffsHyperlistType R σ) (MvVarsLeListTransform σ) (MvVoeffsHyperlistTransform R σ) p
+abbrev MvCoeffsHyperlistType (p : MvPolynomial σ R) := MvVarsLeList p × Hyperlist R
+@[simp] abbrev MvCoeffsHyperlistTransform (p : MvPolynomial σ R) : MvCoeffsHyperlistType p → (σ →₀ ℕ) → R := fun ⟨⟨⟨I, _⟩, _⟩, C⟩ m => (C.get? (I.map m)).getD 0
+abbrev MvCoeffsHyperlist (p : MvPolynomial σ R) := MvCoeffs MvCoeffsHyperlistType MvCoeffsHyperlistTransform p
 
-noncomputable instance instMvCoeffsReflection : MvCoeffsReflection R (MvVarsLeListType σ) (MvCoeffsHyperlistType R σ) (MvVarsLeListTransform σ) (MvVoeffsHyperlistTransform R σ) where
+noncomputable instance instMvCoeffsReflection : MvCoeffsNormalReflection σ R MvCoeffsHyperlistType MvCoeffsHyperlistTransform where
 
   mk_zero := {
-    V := sorry
-    C := sorry
-    isLe := sorry
+    C := ⟨instMvVarsLeListReflection.mk_zero, ⟨0, .nil⟩⟩
     isEq := sorry }
 
-  mk_C _ := {
-    V := sorry
-    C := sorry
-    isLe := sorry
+  mk_C c := {
+    C := ⟨instMvVarsLeListReflection.mk_C c, ⟨c, .nil⟩⟩
     isEq := sorry }
 
   mk_X i := {
-    V := sorry
-    C := sorry
-    isLe := sorry
+    C := ⟨instMvVarsLeListReflection.mk_X i, ⟨0, .node 1 .nil .nil⟩⟩
     isEq := sorry }
 
   mk_XPow i n := {
-    V := sorry
-    C := sorry
-    isLe := sorry
+    C := ⟨instMvVarsLeListReflection.mk_XPow i n, sorry⟩
     isEq := sorry }
 
   mk_pow _ n P := {
-    V := sorry
-    C := sorry
-    isLe := sorry
+    C := ⟨instMvVarsLeListReflection.mk_pow _ n P.C.fst, sorry⟩
     isEq := sorry }
 
   mk_mul _ _ P Q := {
-    V := sorry
-    C := sorry
-    isLe := sorry
+    C := ⟨instMvVarsLeListReflection.mk_mul _ _ P.C.fst Q.C.fst, sorry⟩
     isEq := sorry }
 
   mk_add _ _ P Q := {
-    V := sorry
-    C := sorry
-    isLe := sorry
+    C := ⟨instMvVarsLeListReflection.mk_add _ _ P.C.fst Q.C.fst, MvCoeffs.addAux P.C.fst.V.val Q.C.fst.V.val P.C.snd Q.C.snd⟩
     isEq := sorry }
+
+  mk_norm p := {
+    Normal := sorry
+    normalize T := sorry
+    normalize_idempotent := sorry }
+
+  transform T := ⟨
+    MvCoeffs.expandAux T.C.fst.V.val T.C.snd 0,
+    sorry ⟩
 
 end MvPolynomial
 

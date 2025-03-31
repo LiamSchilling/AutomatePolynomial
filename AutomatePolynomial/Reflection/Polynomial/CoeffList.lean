@@ -5,9 +5,9 @@ namespace Polynomial
 
 variable [Semiring R]
 
-abbrev CoeffsList := Coeffs (List R) (List.getD . . 0)
+abbrev CoeffsList := Coeffs (fun _ => List R) (fun _ C n => List.getD C n 0)
 
-noncomputable instance instCoeffsListReflection : CoeffsNormalReflection R (List R) (List.getD . . 0) where
+noncomputable instance instCoeffsListReflection : CoeffsNormalReflection R (fun _ => List R) (fun _ C n => List.getD C n 0) where
 
   mk_zero := {
     C := []

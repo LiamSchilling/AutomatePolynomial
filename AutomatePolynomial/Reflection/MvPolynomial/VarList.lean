@@ -3,14 +3,14 @@ import AutomatePolynomial.Core.MvPolynomial
 
 namespace MvPolynomial
 
-variable (R : Type*) [CommSemiring R]
-variable (σ : Type*) [LinearOrder σ]
+variable [LinearOrder σ]
+variable [CommSemiring R]
 
-abbrev MvVarsLeListType := { I : List σ // I.Pairwise (. < .) }
-abbrev MvVarsLeListTransform : MvVarsLeListType σ → Finset σ := fun ⟨I, h⟩ => ⟨Multiset.ofList I, List.Pairwise.imp ne_of_lt h⟩
-abbrev MvVarsLeList (p : MvPolynomial σ R) := MvVarsLe (MvVarsLeListType σ) (MvVarsLeListTransform σ) p
+abbrev MvVarsLeListType (_ : MvPolynomial σ R) := { I : List σ // I.Pairwise (. < .) }
+@[simp] abbrev MvVarsLeListTransform (p : MvPolynomial σ R) : MvVarsLeListType p → Finset σ := fun ⟨I, h⟩ => ⟨Multiset.ofList I, List.Pairwise.imp ne_of_lt h⟩
+abbrev MvVarsLeList (p : MvPolynomial σ R) := MvVarsLe MvVarsLeListType MvVarsLeListTransform p
 
-instance instVarsListReflection : MvVarsReflection R (MvVarsLeListType σ) (MvVarsLeListTransform σ) where
+instance instMvVarsLeListReflection : MvVarsReflection σ R MvVarsLeListType MvVarsLeListTransform where
 
   mk_zero := {
     V := ⟨[], List.Pairwise.nil⟩
