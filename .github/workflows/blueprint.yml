@@ -18,6 +18,9 @@ permissions:
   id-token: write # Write access to ID tokens
 
 jobs:
+  deploy:
+    environment:
+      name: github-pages
   build_project:
     runs-on: ubuntu-latest
     name: Build project
