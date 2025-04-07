@@ -7,9 +7,6 @@ package «automate-polynomial» where
 require mathlib from git
   "https://github.com/leanprover-community/mathlib4.git"
 
-require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4.git"
-
 lean_lib «AutomatePolynomial» where
   -- add library configuration options here
 
