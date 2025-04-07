@@ -1,10 +1,12 @@
 import AutomatePolynomial.Reflection.NormalForm
 import AutomatePolynomial.WithBot.Basic
 import Mathlib.Algebra.MvPolynomial.Variables
+import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 
 namespace MvPolynomial
 
 variable [CommSemiring R]
+variable [AddCommMonoid M] [SemilatticeSup M] [OrderBot M]
 
 section Classes
 
@@ -12,13 +14,9 @@ class MvVarsLe (α : MvPolynomial σ R → Type*) (f : ∀ p, α p → Finset σ
   V : α p
   isLe : p.vars ⊆ f p V
 
-class MvDegreesLe (α : MvPolynomial σ R → Type*) (f : ∀ p, α p → Multiset σ) (p : MvPolynomial σ R) where
-  D : α p
-  isLe : p.degrees ⊆ f p D
-
-class MvTotalDegreeLe (p : MvPolynomial σ R) where
-  D : ℕ
-  isLe : p.totalDegree ≤ D
+class MvWeightedTotalDegreeLe (w : σ → M) (p : MvPolynomial σ R) where
+  D : M
+  isLe : p.weightedTotalDegree w ≤ D
 
 class MvCoeffs (α : MvPolynomial σ R → Type*) (f : ∀ p, α p → (σ →₀ ℕ) → R) (p : MvPolynomial σ R) where
   C : α p
@@ -41,12 +39,8 @@ lemma MvVarsLe.isLeOf {p : MvPolynomial σ R} (self : MvVarsLe α f p) :
     p.vars ⊆ f p self.V :=
   self.isLe
 
-lemma MvDegreesLe.isLeOf {p : MvPolynomial σ R} (self : MvDegreesLe α f p) :
-    p.degrees ⊆ f p self.D :=
-  self.isLe
-
-lemma MvTotalDegreeLe.isLeOf {p : MvPolynomial σ R} (self : MvTotalDegreeLe p) :
-    p.totalDegree ≤ self.D :=
+lemma MvWeightedTotalDegreeLe.isLeOf {w : σ → M} {p : MvPolynomial σ R} (self : MvWeightedTotalDegreeLe w p) :
+    p.weightedTotalDegree w ≤ self.D :=
   self.isLe
 
 lemma MvCoeffs.isEqOf {p : MvPolynomial σ R} (self : MvCoeffs α f p) :
@@ -69,6 +63,7 @@ variable (σ : Type*)
 variable (R : Type*) [CommSemiring R]
 variable (T : MvPolynomial σ R → Type*)
 variable (α : MvPolynomial σ R → Type*)
+variable [AddCommMonoid M] [SemilatticeSup M] [OrderBot M]
 
 class MvPolynomialNormalReflection where
 
@@ -97,13 +92,9 @@ class MvVarsReflection (f : ∀ p, α p → Finset σ) extends
     MvPolynomialBaseReflection σ R (MvVarsLe α f),
     MvPolynomialClosureReflection σ R (MvVarsLe α f)
 
-class MvDegreesLeReflection (f : ∀ p, α p → Multiset σ) extends
-    MvPolynomialBaseReflection σ R (MvDegreesLe α f),
-    MvPolynomialClosureReflection σ R (MvDegreesLe α f)
-
-class MvTotalDegreeLeReflection extends
-    MvPolynomialBaseReflection σ R MvTotalDegreeLe,
-    MvPolynomialClosureReflection σ R MvTotalDegreeLe
+class MvWeightedTotalDegreeLeReflection (w : σ → M) extends
+    MvPolynomialBaseReflection σ R (MvWeightedTotalDegreeLe w),
+    MvPolynomialClosureReflection σ R (MvWeightedTotalDegreeLe w)
 
 class MvCoeffsReflection (f : ∀ p, α p → (σ →₀ ℕ) → R) extends
     MvPolynomialBaseReflection σ R (MvCoeffs α f),

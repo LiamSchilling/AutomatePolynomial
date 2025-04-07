@@ -15,8 +15,8 @@ macro_rules
   | `(tactic| mv_poly_dsimp_inst [$ids,*]) =>
     `(tactic|
       dsimp [
-        MvPolynomial.MvDegreeLe.D,
         MvPolynomial.MvVarsLe.V,
+        MvPolynomial.MvWeightedTotalDegreeLe.D,
         MvPolynomial.MvCoeffs.C,
         MvPolynomial.MvEval.F,
         MvPolynomial.MvPolynomialFormReflection.transform,
@@ -48,28 +48,6 @@ macro_rules
 
 end System
 
-section MvDegreeLe
-
-section MvDegreeLe
-
-syntax "mv_poly_reflect_degree_le" : tactic
-macro_rules
-  | `(tactic| mv_poly_reflect_degree_le) =>
-    `(tactic|
-      mv_poly_reflect_with []
-      <:> apply le_trans (MvPolynomial.MvDegreeLe.isLeOf
-        MvPolynomial.MvPolyClass.inst ) )
-
-syntax "mv_poly_reflect_degree_le_trying" "<:>" tactic : tactic
-macro_rules
-  | `(tactic| mv_poly_reflect_degree_le_trying <:> $t) =>
-    `(tactic|
-      mv_poly_reflect_with []
-      <:> apply le_trans (MvPolynomial.MvDegreeLe.isLeOf (
-        MvPolynomial.MvPolyClass.instOf (by infer_instance_trying <:> $t) )) )
-
-end MvDegreeLe
-
 section MvVarsLe
 
 syntax "mv_poly_reflect_vars_le" "VIA" term : tactic
@@ -81,6 +59,18 @@ macro_rules
         MvPolynomial.MvPolyClass.instAs $t )) )
 
 end MvVarsLe
+
+section MvWeightedTotalDegreeLe
+
+syntax "mv_poly_reflect_weighted_total_degree_le" : tactic
+macro_rules
+  | `(tactic| mv_poly_reflect_weighted_total_degree_le) =>
+    `(tactic|
+      mv_poly_reflect_with []
+      <:> apply le_trans (MvPolynomial.MvWeightedTotalDegreeLe.isLeOf
+        MvPolynomial.MvPolyClass.inst ) )
+
+end MvWeightedTotalDegreeLe
 
 section MvCoeffsAndEval
 

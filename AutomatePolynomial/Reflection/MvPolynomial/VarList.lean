@@ -1,5 +1,5 @@
 import AutomatePolynomial.Reflection.MvPolynomial.Defs
-import AutomatePolynomial.Core.MvPolynomial
+import AutomatePolynomial.Representation.MvPolynomial.CoeffHyperlist
 
 namespace MvPolynomial
 

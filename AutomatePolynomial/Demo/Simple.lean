@@ -67,25 +67,25 @@ end LeadingCoeff
 
 section Coeffs
 
-variable [Semiring R]
+variable [CommSemiring R]
 
 -- base cases
 example : (0 : R[X]).coeff 0 = 0   := by poly_reflect_coeff VIA CoeffsList
 example : (0 : R[X]).coeff 1 = 0   := by poly_reflect_coeff VIA CoeffsList
-example : (1 : R[X]).coeff 0 = 1   := by poly_reflect_coeff VIA CoeffsList
-example : (1 : R[X]).coeff 1 = 0   := by poly_reflect_coeff VIA CoeffsList
+example : (1 : R[X]).coeff 0 = 1   := by poly_reflect_coeff VIA CoeffsList; trivial
+example : (1 : R[X]).coeff 1 = 0   := by poly_reflect_coeff VIA CoeffsList; trivial
 example : (C 0 : R[X]).coeff 0 = 0 := by poly_reflect_coeff VIA CoeffsList
 example : (C 0 : R[X]).coeff 1 = 0 := by poly_reflect_coeff VIA CoeffsList
-example : (C 1 : R[X]).coeff 0 = 1 := by poly_reflect_coeff VIA CoeffsList
-example : (C 1 : R[X]).coeff 1 = 0 := by poly_reflect_coeff VIA CoeffsList
-example : (C 2 : R[X]).coeff 0 = 2 := by poly_reflect_coeff VIA CoeffsList
-example : (C 2 : R[X]).coeff 1 = 0 := by poly_reflect_coeff VIA CoeffsList
-example : (X : R[X]).coeff 0 = 0   := by poly_reflect_coeff VIA CoeffsList
-example : (X : R[X]).coeff 1 = 1   := by poly_reflect_coeff VIA CoeffsList
+example : (C 1 : R[X]).coeff 0 = 1 := by poly_reflect_coeff VIA CoeffsList; trivial
+example : (C 1 : R[X]).coeff 1 = 0 := by poly_reflect_coeff VIA CoeffsList; trivial
+example : (C 2 : R[X]).coeff 0 = 2 := by poly_reflect_coeff VIA CoeffsList; trivial
+example : (C 2 : R[X]).coeff 1 = 0 := by poly_reflect_coeff VIA CoeffsList; trivial
+example : (X : R[X]).coeff 0 = 0   := by poly_reflect_coeff VIA CoeffsList; trivial
+example : (X : R[X]).coeff 1 = 1   := by poly_reflect_coeff VIA CoeffsList; trivial
 
 -- closure cases
-example : (X ^ 2 : R[X]).coeff 1 = 0     := by poly_reflect_coeff VIA CoeffsList
-example : (X ^ 2 : R[X]).coeff 2 = 1     := by poly_reflect_coeff VIA CoeffsList
+example : (X ^ 2 : R[X]).coeff 1 = 0     := by poly_reflect_coeff VIA CoeffsList; trivial
+example : (X ^ 2 : R[X]).coeff 2 = 1     := by poly_reflect_coeff VIA CoeffsList; trivial
 example : (X * X : R[X]).coeff 1 = 0     := by poly_reflect_coeff VIA CoeffsList; simp
 example : (X * X : R[X]).coeff 2 = 1     := by poly_reflect_coeff VIA CoeffsList; simp
 example : (X + 1 : R[X]).coeff 0 = 1     := by poly_reflect_coeff VIA CoeffsList; simp
@@ -93,44 +93,45 @@ example : (X + 1 : R[X]).coeff 1 = 1     := by poly_reflect_coeff VIA CoeffsList
 example : (1 + X : R[X]).coeff 0 = 1     := by poly_reflect_coeff VIA CoeffsList; simp
 example : (1 + X : R[X]).coeff 1 = 1     := by poly_reflect_coeff VIA CoeffsList; simp
 example : (X + X : R[X]).coeff 0 = 0     := by poly_reflect_coeff VIA CoeffsList; simp
-example : (X + X : R[X]).coeff 1 = 1 + 1 := by poly_reflect_coeff VIA CoeffsList
+example : (X + X : R[X]).coeff 1 = 1 + 1 := by poly_reflect_coeff VIA CoeffsList; trivial
 
 end Coeffs
 
 section Eval
 
+variable [CommSemiring R]
+
 -- base cases
-example [Semiring R] : (0 : R[X]).eval 0 = 0   := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (0 : R[X]).eval 1 = 0   := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (1 : R[X]).eval 0 = 1   := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (1 : R[X]).eval 1 = 1   := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (C 0 : R[X]).eval 0 = 0 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (C 0 : R[X]).eval 1 = 0 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (C 1 : R[X]).eval 0 = 1 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (C 1 : R[X]).eval 1 = 1 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (C 2 : R[X]).eval 0 = 2 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (C 2 : R[X]).eval 1 = 2 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (X : R[X]).eval 0 = 0   := by poly_reflect_eval VIA EvalArrow
-example [Semiring R] : (X : R[X]).eval 1 = 1   := by poly_reflect_eval VIA EvalArrow
+example : (0 : R[X]).eval 0 = 0   := by poly_reflect_eval VIA EvalArrow
+example : (0 : R[X]).eval 1 = 0   := by poly_reflect_eval VIA EvalArrow
+example : (1 : R[X]).eval 0 = 1   := by poly_reflect_eval VIA EvalArrow
+example : (1 : R[X]).eval 1 = 1   := by poly_reflect_eval VIA EvalArrow
+example : (C 0 : R[X]).eval 0 = 0 := by poly_reflect_eval VIA EvalArrow
+example : (C 0 : R[X]).eval 1 = 0 := by poly_reflect_eval VIA EvalArrow
+example : (C 1 : R[X]).eval 0 = 1 := by poly_reflect_eval VIA EvalArrow
+example : (C 1 : R[X]).eval 1 = 1 := by poly_reflect_eval VIA EvalArrow
+example : (C 2 : R[X]).eval 0 = 2 := by poly_reflect_eval VIA EvalArrow
+example : (C 2 : R[X]).eval 1 = 2 := by poly_reflect_eval VIA EvalArrow
+example : (X : R[X]).eval 0 = 0   := by poly_reflect_eval VIA EvalArrow
+example : (X : R[X]).eval 1 = 1   := by poly_reflect_eval VIA EvalArrow
 
 -- closure cases
--- TODO: will we still need CommSemiring??
-example [CommSemiring R] : (X ^ 2 : R[X]).eval 0 = 0 ^ 2 := by poly_reflect_eval VIA EvalArrow
-example [CommSemiring R] : (X ^ 2 : R[X]).eval 1 = 1 ^ 2 := by poly_reflect_eval VIA EvalArrow
-example [CommSemiring R] : (X * X : R[X]).eval 0 = 0 * 0 := by poly_reflect_eval VIA EvalArrow
-example [CommSemiring R] : (X * X : R[X]).eval 1 = 1 * 1 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R]     : (X + 1 : R[X]).eval 0 = 0 + 1 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R]     : (X + 1 : R[X]).eval 1 = 1 + 1 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R]     : (1 + X : R[X]).eval 0 = 1 + 0 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R]     : (1 + X : R[X]).eval 1 = 1 + 1 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R]     : (X + X : R[X]).eval 0 = 0 + 0 := by poly_reflect_eval VIA EvalArrow
-example [Semiring R]     : (X + X : R[X]).eval 1 = 1 + 1 := by poly_reflect_eval VIA EvalArrow
+example : (X ^ 2 : R[X]).eval 0 = 0 ^ 2 := by poly_reflect_eval VIA EvalArrow
+example : (X ^ 2 : R[X]).eval 1 = 1 ^ 2 := by poly_reflect_eval VIA EvalArrow
+example : (X * X : R[X]).eval 0 = 0 * 0 := by poly_reflect_eval VIA EvalArrow
+example : (X * X : R[X]).eval 1 = 1 * 1 := by poly_reflect_eval VIA EvalArrow
+example : (X + 1 : R[X]).eval 0 = 0 + 1 := by poly_reflect_eval VIA EvalArrow
+example : (X + 1 : R[X]).eval 1 = 1 + 1 := by poly_reflect_eval VIA EvalArrow
+example : (1 + X : R[X]).eval 0 = 1 + 0 := by poly_reflect_eval VIA EvalArrow
+example : (1 + X : R[X]).eval 1 = 1 + 1 := by poly_reflect_eval VIA EvalArrow
+example : (X + X : R[X]).eval 0 = 0 + 0 := by poly_reflect_eval VIA EvalArrow
+example : (X + X : R[X]).eval 1 = 1 + 1 := by poly_reflect_eval VIA EvalArrow
 
 end Eval
 
 section OfCoeffs
 
-variable [Semiring R]
+variable [CommSemiring R]
 
 -- expand: closure cases
 example : (X + X : R[X]) = (1 + 1) * X := by poly_reflect_expand VIA CoeffsList; simp; unfold_expand_aux; simp
