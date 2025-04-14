@@ -10,23 +10,23 @@ namespace MvPolynomial.Rfl
 
 variable [LinearOrder σ] [CommSemiring R]
 
-/- The underlying data for a list representation of polynomial variables -/
+/-- The underlying data for a list representation of polynomial variables -/
 abbrev MvVarsListType (_ : MvPolynomial σ R) :=
   { I : List σ // I.Pairwise (. < .) }
 
-/- Transform the underlying data for a list representation of polynomial variables
+/-- Transform the underlying data for a list representation of polynomial variables
 to the finite set it represents -/
 @[simp]
 abbrev MvVarsListRep (p : MvPolynomial σ R) : MvVarsListType p → Finset σ :=
   fun ⟨I, h⟩ => ⟨I, List.Pairwise.imp ne_of_lt h⟩
 
-/- A list representation of polynomial variables -/
+/-- A list representation of polynomial variables -/
 abbrev MvVarsList (p : MvPolynomial σ R) :=
   MvVarsLe MvVarsListType MvVarsListRep p
 
-/- A reflection system for `MvVarsLe` using the `MvVarsList` representation -/
+/-- A reflection system for `MvVarsLe` using the `MvVarsList` representation -/
 instance instMvVarsLeListReflection :
-    MvVarsReflection σ R MvVarsListType MvVarsListRep where
+    MvVarsLeReflection σ R MvVarsListType MvVarsListRep where
 
   mk_zero := {
     V := ⟨[], List.Pairwise.nil⟩

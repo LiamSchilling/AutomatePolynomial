@@ -9,11 +9,11 @@ namespace Polynomial.Rfl
 
 variable [CommSemiring R]
 
-/- A lambda representation of polynomial evaluations -/
+/-- A lambda representation of polynomial evaluations -/
 abbrev EvalArrow :=
   Eval (fun _ => R → R) (fun _ F => F)
 
-/- A reflection system for `Eval` using the `EvalArrow` representation -/
+/-- A reflection system for `Eval` using the `EvalArrow` representation -/
 instance instEvalArrowReflection :
     EvalReflection R (fun _ => R → R) (fun _ F => F) where
 

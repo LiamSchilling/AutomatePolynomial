@@ -12,21 +12,21 @@ open CoeffHyperlist
 
 variable [LinearOrder σ] [CommSemiring R]
 
-/- The underlying data for a hyperlist representation of polynomial coefficients -/
+/-- The underlying data for a hyperlist representation of polynomial coefficients -/
 abbrev MvCoeffsHyperlistType (p : MvPolynomial σ R) :=
   MvVarsList p × Hyperlist R
 
-/- Transform the underlying data for a hyperlist representation of polynomial coefficients
+/-- Transform the underlying data for a hyperlist representation of polynomial coefficients
 to the function it represents -/
 @[simp]
 abbrev MvCoeffsHyperlistRep (p : MvPolynomial σ R) : MvCoeffsHyperlistType p → (σ →₀ ℕ) → R :=
   fun ⟨⟨⟨I, _⟩, _⟩, C⟩ m => (C.getElem? (I.map m)).getD 0
 
-/- A hyperlist representation of polynomial coefficients -/
+/-- A hyperlist representation of polynomial coefficients -/
 abbrev MvCoeffsHyperlist (p : MvPolynomial σ R) :=
   MvCoeffs MvCoeffsHyperlistType MvCoeffsHyperlistRep p
 
-/- A reflection system for `MvCoeffs` using the `MvCoeffsHyperlist` representation -/
+/-- A reflection system for `MvCoeffs` using the `MvCoeffsHyperlist` representation -/
 noncomputable instance instMvCoeffsHypelistReflection :
     MvCoeffsNormalizerReflection σ R MvCoeffsHyperlistType MvCoeffsHyperlistRep where
 

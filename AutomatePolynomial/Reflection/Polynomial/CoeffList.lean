@@ -12,11 +12,11 @@ open CoeffList
 
 variable [CommSemiring R]
 
-/- A list representation of polynomial evaluations -/
+/-- A list representation of polynomial evaluations -/
 abbrev CoeffsList :=
   Coeffs (fun _ => List R) (fun _ C n => List.getD C n 0)
 
-/- A reflection system for `Coeffs` using the `CoeffList` representation -/
+/-- A reflection system for `Coeffs` using the `CoeffList` representation -/
 noncomputable instance instCoeffsListReflection :
     CoeffsNormalizerReflection R (fun _ => List R) (fun _ C n => List.getD C n 0) where
 

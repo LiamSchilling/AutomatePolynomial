@@ -100,14 +100,18 @@ def zipWith : (α → β → γ) → Hyperlist α → Hyperlist β → Hyperlist
 | f, single a, single b => single (f a b)
 | _, single _, list [] => list []
 | _, list [], single _ => list []
-| f, single a, list (H2 :: L2) => zipWith f (single a) H2
-| f, list (H1 :: L1), single b => zipWith f H1 (single b)
-| f, list L1, list L2 => list (List.zipWith (zipWith f) L1 L2)
-termination_by _ L1 L2 => L1.size + L2.size
+| f, single a, list (H2 :: _) =>
+  zipWith f (single a) H2
+| f, list (H1 :: _), single b =>
+  zipWith f H1 (single b)
+| f, list L1, list L2 =>
+  list (List.zipWith (fun ⟨a, _⟩ ⟨b, _⟩ => zipWith f a b) L1.attach L2.attach)
+termination_by _ H1 H2 => H1.size + H2.size
 decreasing_by
   all_goals simp_wf
   any_goals apply sub_size_le; simp
-  . sorry
+  apply Nat.add_lt_add_of_le_of_lt; apply le_of_lt
+  all_goals apply sub_size_le; assumption
 
 /-- Applies `f` to corresponding elements, using `a₀` and `b₀` for elements without matches -/
 @[simp]
@@ -121,7 +125,7 @@ def zipWithPad : (α → β → γ) → α → β → Hyperlist α → Hyperlist
   list (zipWithPad f a₀ b₀ H1 (single b) :: List.map (map (f . b₀)) L1)
 | f, a₀, b₀, list L1, list L2 =>
   list (List.zipWithPad (zipWithPad f a₀ b₀) (single a₀) (single b₀) L1 L2)
-termination_by _ _ _ L1 L2 => L1.size + L2.size
+termination_by _ _ _ H1 H2 => H1.size + H2.size
 decreasing_by
   all_goals simp_wf
   any_goals apply sub_size_le; simp

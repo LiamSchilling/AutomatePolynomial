@@ -108,28 +108,28 @@ section Interfaces
 
 variable (σ R : Type*) [CommSemiring R] (T α : MvPolynomial σ R → Type*)
 
-/-- A reflection system for `DegreeLe` -/
-class MvVarsReflection (f : ∀ p, α p → Finset σ) extends
+/-- A reflection system for `MvVarsLe` -/
+class MvVarsLeReflection (f : ∀ p, α p → Finset σ) extends
     MvBaseReflection σ R (MvVarsLe α f),
     MvClosureReflection σ R (MvVarsLe α f)
 
-/-- A reflection system for `DegreeLe` -/
+/-- A reflection system for `MvWeightedTotalDegreeLe` -/
 class MvWeightedTotalDegreeLeReflection (w : σ → M) extends
     MvBaseReflection σ R (MvWeightedTotalDegreeLe w),
     MvClosureReflection σ R (MvWeightedTotalDegreeLe w)
 
-/-- A reflection system for `DegreeLe` -/
+/-- A reflection system for `MvCoeffs` -/
 class MvCoeffsReflection (f : ∀ p, α p → (σ →₀ ℕ) → R) extends
     MvBaseReflection σ R (MvCoeffs α f),
     MvClosureReflection σ R (MvCoeffs α f)
 
-/-- A reflection system for `DegreeLe` -/
+/-- A reflection system for `MvCoeffs` with a normal form and rewrite rule -/
 class MvCoeffsNormalizerReflection (f : ∀ p, α p → (σ →₀ ℕ) → R) extends
     MvCoeffsReflection σ R α f,
     MvNormalizerReflection σ R (MvCoeffs α f),
     MvFormReflection σ R (MvCoeffs α f)
 
-/-- A reflection system for `DegreeLe` -/
+/-- A reflection system for `MvEval` -/
 class MvEvalReflection (f : ∀ p, α p → (σ → R) → R) extends
     MvBaseReflection σ R (MvEval α f),
     MvClosureReflection σ R (MvEval α f)

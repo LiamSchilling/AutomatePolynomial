@@ -9,10 +9,10 @@ namespace MvPolynomial.Rfl
 
 variable {σ : Type*} [CommSemiring R]
 
-/- A lambda representation of polynomial evaluations -/
+/-- A lambda representation of polynomial evaluations -/
 abbrev MvEvalArrow := MvEval (fun _ => (σ → R) → R) (fun _ F => F)
 
-/- A reflection system for `MvEval` using the `MvEvalArrow` representation -/
+/-- A reflection system for `MvEval` using the `MvEvalArrow` representation -/
 instance instMvEvalArrowReflection :
     MvEvalReflection σ R (fun _ => (σ → R) → R) (fun _ F => F) where
 

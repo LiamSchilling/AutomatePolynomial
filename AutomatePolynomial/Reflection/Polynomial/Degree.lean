@@ -9,7 +9,7 @@ namespace Polynomial.Rfl
 
 variable [Semiring R]
 
-/- A reflection system for `DegreeLe` -/
+/-- A reflection system for `DegreeLe` -/
 instance instDegreeLeReflection :
     DegreeLeReflection R where
 
@@ -41,7 +41,7 @@ instance instDegreeLeReflection :
     D := max P.D Q.D
     isLe := degree_add_le_of_le P.isLe Q.isLe }
 
-/- A reflection system for `DegreeEq` -/
+/-- A reflection system for `DegreeEq` -/
 instance instDegreeEqReflection :
     DegreeEqReflection R where
 
@@ -84,7 +84,7 @@ instance instDegreeEqReflection :
         (degree_add_eq_of_leadingCoeff_add_ne_zero h2)
         (max_eq_left (le_of_eq h1.symm)) ) }
 
-/- A reflection system for `LeadingCoeff` -/
+/-- A reflection system for `LeadingCoeff` -/
 instance instLeadingCoeffRefelction :
     LeadingCoeffReflection R where
 

@@ -10,7 +10,7 @@ namespace MvPolynomial.Rfl
 variable {σ : Type*} [CommSemiring R]
 variable [AddCommMonoid M] [SemilatticeSup M] [OrderBot M]
 
-/- A reflection system for `MvWeightedTotalDegreeLe` -/
+/-- A reflection system for `MvWeightedTotalDegreeLe` -/
 instance instMvWeightedTotalDegreeLeReflection (w : σ → M) :
     MvWeightedTotalDegreeLeReflection σ R w where
 
