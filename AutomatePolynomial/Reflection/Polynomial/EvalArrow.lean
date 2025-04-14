@@ -1,12 +1,21 @@
 import AutomatePolynomial.Reflection.Polynomial.Defs
 
-namespace Polynomial
+/-!
+# *Implementation*: Evaluation Lambdas
+
+ -/
+
+namespace Polynomial.Rfl
 
 variable [CommSemiring R]
 
-abbrev EvalArrow := Eval (fun _ => R → R) (fun _ F => F)
+/- A lambda representation of polynomial evaluations -/
+abbrev EvalArrow :=
+  Eval (fun _ => R → R) (fun _ F => F)
 
-instance instEvalArrowReflection : EvalReflection R (fun _ => R → R) (fun _ F => F) where
+/- A reflection system for `Eval` using the `EvalArrow` representation -/
+instance instEvalArrowReflection :
+    EvalReflection R (fun _ => R → R) (fun _ F => F) where
 
   mk_zero := {
     F _ := 0
@@ -24,16 +33,16 @@ instance instEvalArrowReflection : EvalReflection R (fun _ => R → R) (fun _ F 
     F x := x ^ n
     isEq := by simp }
 
-  mk_pow _ n P := {
+  mk_pow n P := {
     F x := P.F x ^ n
-    isEq := by simp [P.isEqAt] }
+    isEq := by simp[P.isEqAt] }
 
-  mk_mul _ _ P Q := {
+  mk_mul P Q := {
     F x := P.F x * Q.F x
-    isEq := by simp [P.isEqAt, Q.isEqAt] }
+    isEq := by simp[P.isEqAt, Q.isEqAt] }
 
-  mk_add _ _ P Q := {
+  mk_add P Q := {
     F x := P.F x + Q.F x
-    isEq := by simp [P.isEqAt, Q.isEqAt] }
+    isEq := by simp[P.isEqAt, Q.isEqAt] }
 
-end Polynomial
+end Polynomial.Rfl

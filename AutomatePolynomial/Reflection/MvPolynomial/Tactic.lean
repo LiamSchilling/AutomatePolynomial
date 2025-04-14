@@ -1,101 +1,117 @@
 import AutomatePolynomial.Reflection.MvPolynomial.Defs
 import AutomatePolynomial.Tactic.InferInstance
 
-section System
+/-!
+# *Reflection Tactics* for Multivariate Polynomials
 
-syntax "mv_poly_rw_C" : tactic
+ -/
+
+/- Rewrites polynomials into forms with type-class instances in our reflection systems.
+This is typically rewriting polynomials that are synonyms for constants as those constants.
+Performing this step before the instance inference
+reduces the necessary breadth of the type-class instances. -/
+syntax "mv_poly_rfl_rw" : tactic
 macro_rules
-  | `(tactic| mv_poly_rw_C) =>
-    `(tactic|
-      (try rw[←MvPolynomial.C_0]);
-      (try rw[←MvPolynomial.C_1]) )
+| `(tactic| mv_poly_rfl_rw) =>
+  `(tactic|
+    (try rw[←MvPolynomial.C_0]);
+    (try rw[←MvPolynomial.C_1]) )
 
-syntax "mv_poly_dsimp_inst" "[" Lean.Parser.Tactic.simpLemma,* "]" : tactic
+/- Definitionally simplifies an expression in terms of values from inferred instances.
+This step is performed after instance inference transforms the goal in terms of instances.
+With a computable represenatation,
+the resulting goal should be autmatically verifiable with `rfl`, `decide`, `simp`, etc. -/
+syntax "mv_poly_rfl_dsimp" : tactic
 macro_rules
-  | `(tactic| mv_poly_dsimp_inst [$ids,*]) =>
-    `(tactic|
-      dsimp [
-        MvPolynomial.MvVarsLe.V,
-        MvPolynomial.MvWeightedTotalDegreeLe.D,
-        MvPolynomial.MvCoeffs.C,
-        MvPolynomial.MvEval.F,
-        MvPolynomial.MvPolynomialFormReflection.transform,
-        MvPolynomial.MvPolyClass.inst,
-        $ids,* ] )
+| `(tactic| mv_poly_rfl_dsimp) =>
+  `(tactic|
+    dsimp [
+      MvPolynomial.Rfl.MvVarsLe.V,
+      MvPolynomial.Rfl.MvWeightedTotalDegreeLe.D,
+      MvPolynomial.Rfl.MvCoeffs.C,
+      MvPolynomial.Rfl.MvEval.F,
+      MvPolynomial.Rfl.MvFormReflection.transform,
+      MvPolynomial.Rfl.MvPolyClass.inst,
+      compare, compareOfLessAndEq ] )
 
-syntax
-    "mv_poly_reflect_with" "[" Lean.Parser.Tactic.simpLemma,* "]"
-    "<:>" tactic :
-  tactic
+/- Performs type-class reflection tactic `t`
+after rewriting the polynomial into a compatible form
+and before definitionally simplifying the resulting instanced values in the goal. -/
+syntax "mv_poly_rfl_with" "<:>" tactic : tactic
 macro_rules
-  | `(tactic| mv_poly_reflect_with [$ids,*] <:> $t) =>
-    `(tactic| mv_poly_rw_C; $t; mv_poly_dsimp_inst [$ids,*])
+| `(tactic| mv_poly_rfl_with <:> $t) =>
+  `(tactic| mv_poly_rfl_rw; $t; mv_poly_rfl_dsimp)
 
-syntax
-    "mv_poly_reflect_with_cmp" "[" Lean.Parser.Tactic.simpLemma,* "]"
-    "<:>" tactic :
-  tactic
+/- A standard tactic to resolve subgoals produced during `infer_instance_trying` -/
+syntax "mv_poly_infer_try" : tactic
 macro_rules
-  | `(tactic| mv_poly_reflect_with_cmp [$ids,*] <:> $t) =>
-    `(tactic| mv_poly_reflect_with [compare, compareOfLessAndEq, $ids,*] <:> $t)
-
--- intended for combination with infer_instance_trying
--- in the polynomial synthesis problem
-syntax "mv_poly_try" : tactic
-macro_rules
-  | `(tactic| mv_poly_try) =>
-    `(tactic| mv_poly_dsimp_inst []; simp; try infer_instance )
-
-end System
+| `(tactic| mv_poly_infer_try) =>
+  `(tactic| mv_poly_rfl_dsimp; simp)
 
 section MvVarsLe
 
-syntax "mv_poly_reflect_vars_le" "VIA" term : tactic
+/- Automates goals of the form `p.vars ⊆ V`
+using variable representation `t` -/
+syntax "mv_poly_rfl_vars_le" "VIA" term : tactic
 macro_rules
-  | `(tactic| mv_poly_reflect_vars_le VIA $t) =>
-    `(tactic|
-      mv_poly_reflect_with_cmp []
-      <:> apply subset_trans (MvPolynomial.MvVarsLe.isLeOf (
-        MvPolynomial.MvPolyClass.instAs $t )) )
+| `(tactic| mv_poly_rfl_vars_le VIA $t) =>
+  `(tactic|
+    mv_poly_rfl_with
+    <:> apply subset_trans (MvPolynomial.Rfl.MvVarsLe.isLeOf (
+      MvPolynomial.Rfl.MvPolyClass.instAs $t )) )
 
 end MvVarsLe
 
 section MvWeightedTotalDegreeLe
 
-syntax "mv_poly_reflect_weighted_total_degree_le" : tactic
+/- Automates goals of the form `p.weightedTotalDegree w ≤ D` -/
+syntax "mv_poly_rfl_weighted_total_degree_le" : tactic
 macro_rules
-  | `(tactic| mv_poly_reflect_weighted_total_degree_le) =>
-    `(tactic|
-      mv_poly_reflect_with []
-      <:> apply le_trans (MvPolynomial.MvWeightedTotalDegreeLe.isLeOf
-        MvPolynomial.MvPolyClass.inst ) )
+| `(tactic| mv_poly_rfl_weighted_total_degree_le) =>
+  `(tactic|
+    mv_poly_rfl_with
+    <:> apply le_trans (MvPolynomial.Rfl.MvWeightedTotalDegreeLe.isLeOf
+      MvPolynomial.Rfl.MvPolyClass.inst ) )
 
 end MvWeightedTotalDegreeLe
 
-section MvCoeffsAndEval
+section MvCoeffs
 
-syntax "mv_poly_reflect_coeff" "VIA" term : tactic
+/- Automates goals of the form `p.coeff m = c`
+using coefficient representation `t` -/
+syntax "mv_poly_rfl_coeff" "VIA" term : tactic
 macro_rules
-  | `(tactic| mv_poly_reflect_coeff VIA $t) =>
-    `(tactic|
-      mv_poly_reflect_with []
-      <:> apply Eq.trans (MvPolynomial.MvCoeffs.isEqAtOf (
-        MvPolynomial.MvPolyClass.instAs $t ) _) )
+| `(tactic| mv_poly_rfl_coeff VIA $t) =>
+  `(tactic|
+    mv_poly_rfl_with
+    <:> apply Eq.trans (MvPolynomial.Rfl.MvCoeffs.isEqAtOf (
+      MvPolynomial.Rfl.MvPolyClass.instAs $t ) _) )
 
-syntax "mv_poly_reflect_eval" "VIA" term : tactic
+end MvCoeffs
+
+section MvEval
+
+/- Automates goals of the form `p.eval x = y`
+using evaluation representation `t` -/
+syntax "mv_poly_rfl_eval" "VIA" term : tactic
 macro_rules
-  | `(tactic| mv_poly_reflect_eval VIA $t) =>
-    `(tactic|
-      mv_poly_reflect_with []
-      <:> apply Eq.trans (MvPolynomial.MvEval.isEqAtOf (
-        MvPolynomial.MvPolyClass.instAs $t ) _) )
+| `(tactic| mv_poly_rfl_eval VIA $t) =>
+  `(tactic|
+    mv_poly_rfl_with
+    <:> apply Eq.trans (MvPolynomial.Rfl.MvEval.isEqAtOf (
+      MvPolynomial.Rfl.MvPolyClass.instAs $t ) _) )
 
-syntax "mv_poly_reflect_expand" "VIA" term : tactic
+end MvEval
+
+section Transform
+
+/- -/
+syntax "mv_poly_rfl_expand" "VIA" term : tactic
 macro_rules
-  | `(tactic| mv_poly_reflect_expand VIA $t) =>
-    `(tactic|
-      mv_poly_reflect_with_cmp []
-      <:> apply Eq.trans (MvPolynomial.MvPolynomialFormReflection.transform (
-        MvPolynomial.MvPolyClass.instAs $t )).property )
+| `(tactic| mv_poly_rfl_expand VIA $t) =>
+  `(tactic|
+    mv_poly_rfl_with
+    <:> apply Eq.trans (MvPolynomial.Rfl.MvFormReflection.transform (
+      MvPolynomial.Rfl.MvPolyClass.instAs $t )).property )
 
-end MvCoeffsAndEval
+end Transform

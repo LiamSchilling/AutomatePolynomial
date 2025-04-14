@@ -1,11 +1,18 @@
 import AutomatePolynomial.Reflection.MvPolynomial.Defs
 
-namespace MvPolynomial
+/-!
+# *Implementation*: Weighted Total Degree
 
-variable [CommSemiring R]
+ -/
+
+namespace MvPolynomial.Rfl
+
+variable {σ : Type*} [CommSemiring R]
 variable [AddCommMonoid M] [SemilatticeSup M] [OrderBot M]
 
-instance instMvTotalDegreeLeReflection (w : σ → M) : MvWeightedTotalDegreeLeReflection σ R w where
+/- A reflection system for `MvWeightedTotalDegreeLe` -/
+instance instMvWeightedTotalDegreeLeReflection (w : σ → M) :
+    MvWeightedTotalDegreeLeReflection σ R w where
 
   mk_zero := {
     D := 0
@@ -23,16 +30,16 @@ instance instMvTotalDegreeLeReflection (w : σ → M) : MvWeightedTotalDegreeLeR
     D := n • w j
     isLe := sorry }
 
-  mk_pow _ n P := {
+  mk_pow n P := {
     D := n • P.D
     isLe := sorry }
 
-  mk_mul _ _ P Q := {
+  mk_mul P Q := {
     D := P.D + Q.D
     isLe := sorry }
 
-  mk_add _ _ P Q := {
+  mk_add P Q := {
     D := max P.D Q.D
     isLe := sorry }
 
-end MvPolynomial
+end MvPolynomial.Rfl

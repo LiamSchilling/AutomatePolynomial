@@ -1,17 +1,25 @@
 import Lean
 
+/-!
+# Infer Instance
+
+More powerful search tactics for instance inference.
+
+ -/
+
 open Lean Meta Elab Tactic
 
 namespace Lean.MVarId
 
--- recursively synthesize type class instances,
--- trying a provided tactic to resolve those that fail
+/-- Depth-first search of instances for inference,
+trying a given tactic to resolve the current subgoal at any step where
+Lean's automatic inference fails  -/
 def synthInstanceTrying (goal : MVarId) (tactic : Syntax) (d : Nat := 8) :
     MetaM Unit := do
   -- terminate at max depth
   match d with
   | 0 => throwError "maximum recursion depth reached"
-  | d + 1 =>
+  | d' + 1 =>
   -- try to resolve goal using tactic
   let state ← saveState
   try
@@ -27,7 +35,7 @@ def synthInstanceTrying (goal : MVarId) (tactic : Syntax) (d : Nat := 8) :
       let state ← saveState
       try
         let subgoals ← goal.apply inst.val { allowSynthFailures := true }
-        let _ ← subgoals.reverse.mapM (synthInstanceTrying . tactic d)
+        let _ ← subgoals.reverse.mapM (synthInstanceTrying . tactic d')
         return
       catch _ =>
         restoreState state
@@ -35,7 +43,8 @@ def synthInstanceTrying (goal : MVarId) (tactic : Syntax) (d : Nat := 8) :
 
 end Lean.MVarId
 
--- recursively synthesize type class instances,
--- trying a provided tactic to resolve those that fail
+/-- Depth-first search of instances for inference of the main goal,
+trying a given tactic to resolve the current subgoal at any step where
+Lean's automatic inference fails  -/
 elab "infer_instance_trying" "<:>" t:tactic : tactic => do
   (← getMainGoal).synthInstanceTrying t

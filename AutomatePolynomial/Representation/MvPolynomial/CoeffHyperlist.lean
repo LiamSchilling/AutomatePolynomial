@@ -1,62 +1,57 @@
 import AutomatePolynomial.Hyperlist.Lemmas
 import Mathlib.Algebra.MvPolynomial.Variables
 
-namespace MvPolynomial.MvCoeffs
+/-!
+# *Representation*: Coefficient Hyperlists
 
-variable [CommSemiring R] [LinearOrder σ]
+We use `Hyperlist`,
+along with a `List` labeling dimensions by variable names,
+as a dense representation of multivariate polynomial coefficients.
 
--- add coefficient lists
+ -/
+
+namespace MvPolynomial.CoeffHyperlist
+
+variable [LinearOrder σ] [CommSemiring R]
+
+/-- Coefficient list operation corresponding to polynomial addition -/
 @[simp]
-def addAux (is1 is2 : List σ) (cs1 cs2 : Hyperlist R) :=
-  Hyperlist.merge_and_match_zipWith (. + .)  is1 is2 cs1 cs2 0 0
+def add (I1 I2 : List σ) (L1 L2 : Hyperlist R) :=
+  Hyperlist.nodupsMerge_zipWithPad (. + .) 0 0 I1 I2 L1 L2
 
--- multiply by constant
+/-- Coefficient list operation corresponding to polynomial multiplication by a constant -/
 @[simp]
-def mulCAux (c : R) (cs : Hyperlist R) :=
-  cs.map (c * .)
+def mulC (c : R) (L : Hyperlist R) :=
+  Hyperlist.map (c * .) L
 
--- multiply by X i if i is the first dimension in cs
+/-- Coefficient list operation corresponding to polynomial multiplication by `X i`
+where `i` exactly the first variable label in the polynomial -/
 @[simp]
-def mulXHeadAux [Zero R] (cs : Hyperlist R) :=
-  Hyperlist.node (some cs) (Hyperlist.mk 0 .nil)
+def mulXHead (L : Hyperlist R) :=
+  Hyperlist.list (Hyperlist.single 0 :: L.toList)
 
--- multiply by X i if i is less than all dimensions in cs
-def mulXNewAux [Zero R] (cs : Hyperlist R) :=
-  Hyperlist.node (some (Hyperlist.mk 0 .nil)) cs
-
--- multiply coefficient lists
+/-- Coefficient list operation corresponding to polynomial multiplication by `X i`
+where `i` is less than every other variable label in the polynomial -/
 @[simp]
-def mulAux [Zero R] (is1 is2 : List σ) (cs1 cs2 : Hyperlist R) :=
-  match is1, is2 with
-  | [], [] => Hyperlist.mk (cs1.get_head * cs2.get_head) .nil
-  | [], _ :: is2 =>
-    match cs2 with
-    | Hyperlist.mk c .nil => mulCAux c cs1
-    | Hyperlist.mk c (.node c_ T1 T2) => addAux is1 is2 (mulXHeadAux (mulCAux c_ cs1)) (mulXNewAux (mulAux [] is2 (mulXNewAux (mulCAux c_ cs1)) (Hyperlist.mk c T2)))
-  | _ :: is1, [] =>
-    match cs1 with
-    | Hyperlist.mk c .nil => mulCAux c cs2
-    | Hyperlist.mk c (.node c_ T1 T2) => addAux is1 is2 (mulXHeadAux (mulCAux c_ cs1)) (mulXNewAux (mulAux is1 [] (mulXNewAux (mulCAux c_ cs1)) (Hyperlist.mk c T2)))
-  | i1 :: is1, i2 :: is2 =>
-  match cmp i1 i2 with
-  | .lt => sorry
-  | .gt => sorry
-  | .eq => sorry
+def mulXNew (L : Hyperlist R) :=
+  Hyperlist.list [L]
 
--- given coefficients
--- [ ... [ [ c###00, ... c###0K ], ... [ c###M0, c###MK ] ] ... ]
--- computes abstract polynomial
--- ( ... #^# * ( m^M * ( k^K * c###MK + ... c###M0 ) + ... ( k^K * c###0K + ... c###00 ) ) ... )
-noncomputable def expandAux (is : List σ) (cs : Hyperlist R) (n : ℕ) :=
-  match is, cs with
-  | [], .mk c _ => C c
-  | i :: is, .mk c .nil => X i ^ n * expandAux is (.mk c .nil) 0
-  | i :: is, .mk c (.node c_ TL DM) => expandAux (i :: is) (.mk c_ TL) n.succ + X i ^ n * expandAux is (.mk c DM) 0
+/-- TODO: CLEAN & DOCSTRING
 
-end MvPolynomial.MvCoeffs
+given coefficients
+[ ... [ [ c###00, ... c###0K ], ... [ c###M0, c###MK ] ] ... ]
+computes abstract polynomial
+( ... #^# * ( m^M * ( k^K * c###MK + ... c###M0 ) + ... ( k^K * c###0K + ... c###00 ) ) ... ) -/
+noncomputable def expandAux (is : List σ) (cs : Hyperlist R) (n : ℕ) : MvPolynomial α R :=
+  sorry
+--  match is, cs with
+--  | [], .mk c _ => C c
+--  | i :: is, .mk c .nil => X i ^ n * expandAux is (.mk c .nil) 0
+--  | i :: is, .mk c (.node c_ TL DM) => expandAux (i :: is) (.mk c_ TL) n.succ + X i ^ n * expandAux is (.mk c DM) 0
 
--- fully unfold expand call
 syntax "unfold_mv_expand_aux" : tactic
 macro_rules
   | `(tactic| unfold_mv_expand_aux) =>
-    `(tactic| repeat unfold MvPolynomial.MvCoeffs.expandAux)
+    `(tactic| repeat unfold MvPolynomial.CoeffHyperlist.expandAux)
+
+end MvPolynomial.CoeffHyperlist

@@ -1,202 +1,167 @@
 import AutomatePolynomial.Hyperlist.Lemmas
 import Mathlib.Algebra.Polynomial.Degree.Lemmas
-import AutomatePolynomial.Reflection.NormalForm
 
-namespace Polynomial
+/-!
+# *Representation*: Coefficient Lists
 
-variable [Semiring R] in
-def is_coeff (p : R[X]) (cs : List R) := ∀ {n}, p.coeff n = cs[n]?.getD 0
+We use `List` as a dense representation of polynomial coefficients.
 
-namespace Coeffs
+ -/
 
--- add coefficient lists
-variable [Semiring R] in
+namespace Polynomial.CoeffList
+
+section Semiring
+
+variable [Semiring R]
+
+/-- Representation invariant for coefficient lists -/
+def reps (p : R[X]) (C : List R) :=
+  ∀ n, p.coeff n = C[n]?.getD 0
+
+/-- Coefficient list operation corresponding to polynomial addition -/
 @[simp]
-def addAux (cs1 cs2 : List R) :=
-  List.match_zipWith (. + .) cs1 cs2 0 0
+def add (L1 L2 : List R) :=
+  List.zipWithPad (. + .) 0 0 L1 L2
 
-variable [Semiring R] in
-lemma addAux_length
-    {cs1 cs2 : List R} :
-    (addAux cs1 cs2).length =
-    max cs1.length cs2.length := by
-  apply List.length_match_zipWith
+theorem length_add {L1 L2 : List R} :
+    (add L1 L2).length = max L1.length L2.length := by
+  exact List.length_zipWithPad
 
-variable [Semiring R] in
-lemma addAux_eq
-    {n : ℕ} {cs1 cs2 : List R} :
-    (addAux cs1 cs2)[n]?.getD 0 =
-    cs1[n]?.getD 0 + cs2[n]?.getD 0 := by
-  nth_rw 1 [←show 0 + 0 = (0 : R) by simp]
-  apply List.getElem?_getD_match_zipWith
+theorem getD_add {n : ℕ} {L1 L2 : List R} :
+    (add L1 L2)[n]?.getD 0 = L1[n]?.getD 0 + L2[n]?.getD 0 := by
+  nth_rw 1 [←zero_add 0]; exact List.getD_zipWithPad
 
-variable [Semiring R] in
-lemma addAux_rep
-    {p q : R[X]} {cs1 cs2 : List R}
-    (h1 : p.is_coeff cs1) (h2 : q.is_coeff cs2) :
-    (p + q).is_coeff (addAux cs1 cs2) := by
-  intro; rw[Coeffs.addAux_eq, ←h1, ←h2]; simp
+theorem reps_add  {L1 L2 : List R}
+    (h1 : reps p L1) (h2 : reps q L2) :
+    reps (p + q) (add L1 L2) := by
+  intro; rw[getD_add, ←h1, ←h2]; simp
 
--- multiply by constant
-variable [Semiring R] in
+/-- Coefficient list operation corresponding to polynomial multiplication by a constant -/
 @[simp]
-def mulCAux (c : R) (cs : List R) :=
-  cs.map (c * .)
+def mulC (c : R) (L : List R) :=
+  List.map (c * .) L
 
-variable [Semiring R] in
-lemma mulCAux_length
-    {c : R} {cs : List R} :
-    (mulCAux c cs).length =
-    cs.length := by
+theorem length_mulC {L : List R} :
+    (mulC c L).length = L.length := by
   simp
 
-variable [Semiring R] in
-lemma mulCAux_eq
-    {n : ℕ} {c : R} {cs : List R} :
-    (mulCAux c cs)[n]?.getD 0 =
-    c * cs[n]?.getD 0 := by
+theorem getD_mulC {n : ℕ} {L : List R} :
+    (mulC c L)[n]?.getD 0 = c * L[n]?.getD 0 := by
   simp
-  cases inferInstanceAs (Decidable (n < cs.length)) <;> rename_i h
-  . simp at h
-    rw[List.getElem?_eq_none]; simp; assumption
+  cases Nat.decLt n L.length <;> (rename_i h; simp at h)
+  . rw[List.getElem?_eq_none]; simp; assumption
   . rw[(List.getElem?_eq_some_getElem_iff h).mpr trivial]; simp
 
-variable [Semiring R] in
-lemma mulCAux_rep
-    {c : R} {p : R[X]} {cs : List R}
-    (h : p.is_coeff cs) :
-    (C c * p).is_coeff (mulCAux c cs) := by
-  intro; rw[Coeffs.mulCAux_eq, ←h]; simp
+theorem rep_mulC {L : List R}
+    (h : reps p L) :
+    reps (C c * p) (mulC c L) := by
+  intro; rw[getD_mulC, ←h]; simp
 
--- multiply by X
-variable [Semiring R] in
+/-- Coefficient list operation corresponding to polynomial multiplication by `X` -/
 @[simp]
-def mulXAux (cs : List R) :=
-  0 :: cs
+def mulX (L : List R) :=
+  0 :: L
 
-variable [Semiring R] in
-lemma mulXAux_length
-    {cs : List R} :
-    (mulXAux cs).length =
-    cs.length + 1 := by
+theorem length_mulX {L : List R} :
+    (mulX L).length = L.length + 1 := by
   simp
 
-variable [Semiring R] in
-lemma mulXAux_eq
-    {n : ℕ} {cs : List R} :
-    (mulXAux cs)[n]?.getD 0 =
+theorem getD_mulX {n : ℕ} {L : List R} :
+    (mulX L)[n]?.getD 0 =
     match n with
     | 0 => 0
-    | n + 1 => cs[n]?.getD 0 := by
+    | n' + 1 => L[n']?.getD 0 := by
   cases n <;> simp
 
-variable [Semiring R] in
-lemma mulXAux_rep
-    {p : R[X]} {cs : List R}
-    (h : p.is_coeff cs) :
-    (X * p).is_coeff (mulXAux cs) := by
-  intro n; rw[Coeffs.mulXAux_eq]; cases n <;> simp; rw[←h]
+theorem reps_mulX {L : List R}
+    (h : reps p L) :
+    reps (X * p) (mulX L) := by
+  intro n; rw[getD_mulX]; cases n <;> simp; rw[←h]
 
--- multiply by power of X
-variable [Semiring R] in
+end Semiring
+
+section CommSemiring
+
+variable [CommSemiring R]
+
+/-- Coefficient list operation corresponding to polynomial multiplication by `X ^ n` -/
 @[simp]
-def mulXPowAux (n : ℕ) (cs : List R) :=
+def mulXPow (n : ℕ) (L : List R) :=
   match n with
-  | 0 => cs
-  | n + 1 => mulXAux (mulXPowAux n cs)
+  | 0 => L
+  | n' + 1 => mulX (mulXPow n' L)
 
-variable [Semiring R] in
-lemma mulXPowAux_length
-    {n : ℕ} {cs : List R} :
-    (mulXPowAux n cs).length =
-    n + cs.length := by
-  cases n <;> rename_i n
-  . simp
-  . unfold mulXPowAux; rw[mulXAux_length, mulXPowAux_length, add_assoc]; nth_rw 2 [add_comm]; rw[add_assoc]
+theorem length_mulXPowAux {L : List R} :
+    (mulXPow n L).length = L.length + n := by
+  cases n <;> simp; rw[length_mulXPowAux, add_assoc]
 
-variable [CommSemiring R] in
-lemma mulXPowAux_rep
-    {n : ℕ} {p : R[X]} {cs : List R}
-    (h : p.is_coeff cs) :
-    (X ^ n * p).is_coeff (mulXPowAux n cs) := by
-  cases n <;> rename_i n
-  . simpa
-  . unfold mulXPowAux; unfold is_coeff; intro N
-    rw[mulXAux_eq]; cases N;
-    . simp
-    . simp; rw[←mulXPowAux_rep h]
-      rw[pow_succ]; nth_rw 2 [mul_comm]; rw[mul_assoc]
-      simp
+theorem reps_mulXPow {L : List R}
+    (h : reps p L) :
+    reps (X ^ n * p) (mulXPow n L) := by
+  cases n <;> simp; assumption
+  intro n; cases n <;> simp
+  rw[←reps_mulXPow h, pow_succ]; nth_rw 2 [mul_comm]; rw[mul_assoc]; simp
 
--- multiply coefficient lists
-variable [Semiring R] in
+/-- Coefficient list operation corresponding to polynomial multiplication -/
 @[simp]
-def mulAux (cs1 cs2 : List R) :=
-  match cs1 with
-  | [] => List.replicate cs2.length.pred 0
-  | c :: cs1 => addAux (mulXAux (mulAux cs1 cs2)) (mulCAux c cs2)
+def mul (L1 L2 : List R) :=
+  match L1 with
+  | [] => List.replicate L2.length.pred 0
+  | c :: L1' => add (mulC c L2) (mulX (mul L1' L2))
 
-variable [Semiring R] in
-lemma mulAux_length
-    {cs1 cs2 : List R} :
-    (mulAux cs1 cs2).length =
-    cs1.length + cs2.length.pred := by
-  cases cs1
-  . simp
-  . unfold mulAux; rw[addAux_length]; simp; rw[mulAux_length]
-    rw[Nat.max_eq_left]
-    apply add_right_comm; rw[add_assoc]; apply le_add_left
-    apply Nat.le_add_of_sub_le; apply le_of_eq; rfl
+theorem length_mul {L1 L2 : List R} :
+    (mul L1 L2).length = L1.length + L2.length.pred := by
+  cases L1; simp
+  unfold mul; rw[length_add]; simp; rw[length_mul]
+  rw[max_eq_right, add_right_comm]; rfl
+  apply Nat.le_add_of_sub_le; apply le_add_left; rfl
 
-variable [CommSemiring R] in
-lemma mulAux_rep
-    {p q : R[X]} {cs1 cs2 : List R}
-    (h1 : p.is_coeff cs1) (h2 : q.is_coeff cs2) :
-    (p * q).is_coeff (mulAux cs1 cs2) := by
-  cases cs1
-  . rw[leadingCoeff_eq_zero.mp h1]; unfold is_coeff; intro n; simp
-    sorry
-  . sorry
+theorem reps_mul {L1 L2 : List R}
+    (h1 : reps p L1) (h2 : reps q L2) :
+    reps (p * q) (mul L1 L2) := by
+  cases L1 <;> unfold mul
+  . intro n
+    rw[leadingCoeff_eq_zero.mp (h1 p.natDegree)]
+    cases Nat.decLt n L2.length.pred <;> (rename_i h; simp at h)
+    . rw[List.getElem?_eq_none]; simp; simpa
+    . rw[(List.getElem?_eq_some_getElem_iff (by simpa)).mpr trivial]; simp
+  . rename_i L1'; sorry
 
--- power of a coefficient list
-variable [Semiring R] in
+/-- Coefficient list operation corresponding to polynomial power -/
 @[simp]
-def powAux (n : ℕ) (cs : List R) :=
+def power (n : ℕ) (L : List R) :=
   match n with
   | 0 => [1]
-  | n + 1 => mulAux (powAux n cs) cs
+  | n' + 1 => mul (power n' L) L
 
-variable [Semiring R] in
-lemma powAux_length
-    {n : ℕ} {cs2 : List R} :
-    (powAux n cs2).length =
-    n * cs2.length.pred + 1 := by
-  cases n
-  . simp
-  . unfold powAux; rw[mulAux_length, powAux_length]
-    rw[add_comm, ←add_assoc]
-    nth_rw 2 [add_comm]
-    rw[mul_comm, ←Nat.mul_succ, mul_comm]
+theorem length_power {L : List R} :
+    (power n L).length = n * L.length.pred + 1 := by
+  cases n <;> simp
+  rw[length_mul, length_power]
+  rw[add_comm, ←add_assoc]; nth_rw 2 [add_comm]; rw[mul_comm, ←Nat.mul_succ, mul_comm]; rfl
 
-variable [CommSemiring R] in
-lemma powAux_rep
-    {n : ℕ} {p : R[X]} {cs : List R}
-    (h : p.is_coeff cs) :
-    (p ^ n).is_coeff (powAux n cs) := by
-  cases n
-  . simp; unfold is_coeff; intro n; rw[coeff_one]
-    cases n <;> simp
-  . rw[pow_succ]; unfold powAux; apply mulAux_rep; exact powAux_rep h; exact h
+theorem reps_power {L : List R}
+    (h : reps p L) :
+    reps (p ^ n) (power n L) := by
+  cases n <;> simp
+  . intro n; rw[coeff_one]; cases n <;> simp
+  . rw[pow_succ]; sorry
 
--- given coefficients [c0, c1, ... cn]
--- computes abstract polynomial (cn*x^n + ... c1*x + c0)
-variable [Semiring R] in
+end CommSemiring
+
+section Semiring
+
+variable [Semiring R]
+
+/-- TODO: CLEAN & DOCSTRING
+
+given coefficients [c0, c1, ... cn]
+computes abstract polynomial (cn*x^n + ... c1*x + c0) -/
 noncomputable def expandAux (cs : List R) (n : ℕ) :=
   match cs with
   | [] => 0
   | c :: cs => expandAux cs n.succ + C c * X ^ n
 
-variable [Semiring R] in
 lemma expandAux_coeff
     {cs : List R} {N : ℕ} :
     (expandAux cs N).coeff n =
@@ -221,7 +186,6 @@ lemma expandAux_coeff
       rw[if_neg]; simp
       apply ne_of_lt; assumption
 
-variable [Semiring R] in
 lemma expandAux_eq
     {p : R[X]} {cs : List R} {N : ℕ} :
     (∀ n, n < N → p.coeff n = 0) →
@@ -235,12 +199,11 @@ lemma expandAux_eq
   . rw[if_pos h3, ←h1]
     assumption
 
-end Coeffs
-
-end Polynomial
-
--- fully unfold expand call
 syntax "unfold_expand_aux" : tactic
 macro_rules
   | `(tactic| unfold_expand_aux) =>
-    `(tactic| repeat unfold Polynomial.Coeffs.expandAux)
+    `(tactic| repeat unfold Polynomial.CoeffList.expandAux)
+
+end Semiring
+
+end Polynomial.CoeffList

@@ -1,14 +1,21 @@
 import AutomatePolynomial.Reflection.Polynomial.Defs
 
-namespace Polynomial
+/-!
+# *Implementation*: Degrees and Leading Coefficients
+
+ -/
+
+namespace Polynomial.Rfl
 
 variable [Semiring R]
 
-instance instDegreeLeReflection : DegreeLeReflection R where
+/- A reflection system for `DegreeLe` -/
+instance instDegreeLeReflection :
+    DegreeLeReflection R where
 
   mk_zero := {
     D := ⊥
-    isLe := C_0.symm.rec ((degree_le_iff_coeff_zero 0 ⊥).mpr (fun _ => congrFun rfl)) }
+    isLe := C_0.symm.rec (le_of_eq degree_zero) }
 
   mk_C _ := {
     D := 0
@@ -20,32 +27,31 @@ instance instDegreeLeReflection : DegreeLeReflection R where
 
   mk_XPow n := {
     D := n
-    isLe :=
-      le_trans (
-        degree_pow_le_of_le n degree_X_le ) (
-        le_of_eq (mul_one _) ) }
+    isLe := degree_X_pow_le n }
 
-  mk_pow _ n P := {
+  mk_pow n P := {
     D := n * P.D
     isLe := degree_pow_le_of_le n P.isLe }
 
-  mk_mul _ _ P Q := {
+  mk_mul P Q := {
     D := P.D + Q.D
     isLe := degree_mul_le_of_le P.isLe Q.isLe }
 
-  mk_add _ _ P Q := {
+  mk_add P Q := {
     D := max P.D Q.D
     isLe := degree_add_le_of_le P.isLe Q.isLe }
 
-instance instDegreeEqReflection : DegreeEqReflection R where
+/- A reflection system for `DegreeEq` -/
+instance instDegreeEqReflection :
+    DegreeEqReflection R where
 
   mk_zero := {
     D := ⊥
     isEq := C_0.symm.rec degree_zero }
 
-  mk_C c := {
+  mk_C _ h := {
     D := 0
-    isEq := degree_C (NeZero.ne c) }
+    isEq := degree_C h }
 
   mk_X := {
     D := 1
@@ -53,50 +59,34 @@ instance instDegreeEqReflection : DegreeEqReflection R where
 
   mk_XPow n := {
     D := n
-    isEq :=
-      Eq.trans (
-        degree_pow' (
-          leadingCoeff_X.symm.rec (
-            (one_pow n).symm.rec one_ne_zero ) ) ) (
-        degree_X.symm.rec ((nsmul_eq_mul n 1).symm.rec (mul_one _)) ) }
+    isEq := degree_X_pow n }
 
-  mk_pow p _ n _ P := {
+  mk_pow n h P := {
     D := n • P.D
-    isEq :=
-      DegreeEq.isEq.rec (degree_pow' (
-        LeadingCoeff.isEq.symm.rec (
-          NeZero.ne (leadingCoeffPow p n) ) )) }
+    isEq := P.isEq.rec (degree_pow' h) }
 
-  mk_mul p q _ _ _ P Q := {
+  mk_mul h P Q := {
     D := P.D + Q.D
-    isEq :=
-      DegreeEq.isEq.rec (DegreeEq.isEq.rec (degree_mul' (
-        LeadingCoeff.isEq.symm.rec (LeadingCoeff.isEq.symm.rec (
-          NeZero.ne (leadingCoeffMul p q) )) ))) }
+    isEq := P.isEq.rec (Q.isEq.rec (degree_mul' h)) }
 
-  mk_add_left p q P Q h _ _ := {
+  mk_add_left h P := {
     D := P.D
-    isEq := by
-      revert P Q; intro P Q h; exact
-      DegreeEq.isEq.rec (degree_add_eq_left_of_degree_lt (
-        apply_degreeLt h )) }
+    isEq := P.isEq.rec (degree_add_eq_left_of_degree_lt h) }
 
-  mk_add_right p q P Q h _ _ := {
+  mk_add_right h Q := {
     D := Q.D
-    isEq := by
-      revert P Q; intro P Q h; exact
-      DegreeEq.isEq.rec (degree_add_eq_right_of_degree_lt (
-        apply_degreeLt h )) }
+    isEq := Q.isEq.rec (degree_add_eq_right_of_degree_lt h) }
 
-  mk_add_balanced p q P Q _ _ neqz h _ _ := {
+  mk_add_bal h1 h2 P _ := {
     D := P.D
-    isEq := by
-      revert P Q; intro P Q h
-      rw[←DegreeEq.isEq]
-      rw[degree_add_eq_of_leadingCoeff_add_ne_zero, apply_degreeEq h]; simp
-      rw[LeadingCoeff.isEq, LeadingCoeff.isEq]; apply neqz.ne }
+    isEq :=
+      P.isEq.rec (Eq.trans
+        (degree_add_eq_of_leadingCoeff_add_ne_zero h2)
+        (max_eq_left (le_of_eq h1.symm)) ) }
 
-instance instLeadingCoeffRefelction : LeadingCoeffReflection R where
+/- A reflection system for `LeadingCoeff` -/
+instance instLeadingCoeffRefelction :
+    LeadingCoeffReflection R where
 
   mk_zero := {
     c := 0
@@ -114,43 +104,24 @@ instance instLeadingCoeffRefelction : LeadingCoeffReflection R where
     c := 1
     isEq := Monic.leadingCoeff (monic_X_pow n) }
 
-  mk_pow p P n _ _ := {
+  mk_pow n h P := {
     c := P.c ^ n
-    isEq := by
-      revert P; intro P _; exact
-      LeadingCoeff.isEq.rec (leadingCoeff_pow' (
-        LeadingCoeff.isEq.symm.rec (
-          NeZero.ne (leadingCoeffPow p n) ) )) }
+    isEq := P.isEq.rec (leadingCoeff_pow' h) }
 
-  mk_mul p q P Q _ _ _ := {
+  mk_mul h P Q := {
     c := P.c * Q.c
-    isEq := by
-      revert P Q; intro P Q _; exact
-      LeadingCoeff.isEq.rec (LeadingCoeff.isEq.rec (leadingCoeff_mul' (
-        LeadingCoeff.isEq.symm.rec (LeadingCoeff.isEq.symm.rec (
-          NeZero.ne (leadingCoeffMul p q) )) ))) }
+    isEq := P.isEq.rec (Q.isEq.rec (leadingCoeff_mul' h)) }
 
-  mk_add_left p q _ _ h P Q := {
+  mk_add_left h P := {
     c := P.c
-    isEq :=
-      by revert P Q; intro P Q; exact
-      LeadingCoeff.isEq.rec (leadingCoeff_add_of_degree_lt' (
-        apply_degreeLt h )) }
+    isEq := P.isEq.rec (leadingCoeff_add_of_degree_lt' h) }
 
-  mk_add_right p q _ _ h P Q := {
+  mk_add_right h Q := {
     c := Q.c
-    isEq :=
-      by revert P Q; intro P Q; exact
-      LeadingCoeff.isEq.rec (leadingCoeff_add_of_degree_lt (
-        apply_degreeLt h )) }
+    isEq := Q.isEq.rec (leadingCoeff_add_of_degree_lt h) }
 
-  mk_add_balanced p q _ _ P Q _ h _ _ := {
+  mk_add_bal h1 h2 P Q := {
     c := P.c + Q.c
-    isEq :=
-      by revert P Q; intro P Q _; exact
-      LeadingCoeff.isEq.rec (LeadingCoeff.isEq.rec (
-        leadingCoeff_add_of_degree_eq (apply_degreeEq h) (
-          LeadingCoeff.isEq.symm.rec (LeadingCoeff.isEq.symm.rec (
-            NeZero.ne (leadingCoeffAdd p q) )) ) )) }
+    isEq := P.isEq.rec (Q.isEq.rec (leadingCoeff_add_of_degree_eq h1 h2)) }
 
-end Polynomial
+end Polynomial.Rfl

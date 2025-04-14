@@ -1,254 +1,170 @@
-import AutomatePolynomial.WithBot.Basic
-import Mathlib.Data.Tree.Basic
+import Mathlib.Data.List.Basic
 
--- representation of unbounded tensors
--- left subtree is increase in current dimension
--- right subtree begins traversing in next dimension
--- value at a node encodes the successor index (trees are rootless)
--- Hyperlist wraps such a rootless tree with a root
-inductive Hyperlist (α : Type*) where
-| mk : α → Tree α → Hyperlist α
+/-!
+# Hyperlists
+
+A `Hyperlist` is a higher-dimensional list.
+
+## Main declarations
+
+* `Hyperlist`: A tree representation of lists
+  with unbounded dimension and variable lengths
+* `nodupsMerge_zipWithPad`: A powerful method for zipping hyperlists,
+  taking into account dimension labels
+  and accounting for all elements via default values
+
+ -/
+
+/-- A tree representation of lists
+with unbounded dimension and variable lengths -/
+inductive Hyperlist (α : Type u) where
+| single : α → Hyperlist α
+| list : List (Hyperlist α) → Hyperlist α
 
 namespace List
 
--- BASIC OPERATIONS
-
--- extend length by appending a replicated element
+/-- Applies `f` to corresponding elements, using `a₀` and `b₀` for elements without matches -/
 @[simp]
-def extend : List α → ℕ → α → List α
-| L, n, a₀ => L ++ replicate (n - L.length) a₀
+def zipWithPad : (α → β → γ) → α → β → List α → List β → List γ
+| _, _, _, [], [] => []
+| f, a₀, b₀, [], b :: L2 => f a₀ b :: zipWithPad f a₀ b₀ [] L2
+| f, a₀, b₀, a :: L1, [] => f a b₀ :: zipWithPad f a₀ b₀ L1 []
+| f, a₀, b₀, a :: L1, b :: L2 => f a b :: zipWithPad f a₀ b₀ L1 L2
 
--- extend the shorter to match the length of the longer
+/-- Merges lists using `cmp`
+to pick the least element first and omit components of equal pairs
+(prioritising keeping the left component)
+
+When both lists are strictly increasing, the result is `eraseDups` composed with `merge`. -/
 @[simp]
-def match_extend (L1 : List α) (L2 : List β) (a₀ : α) (b₀ : β) :=
-  let len := max L1.length L2.length
-  (L1.extend len a₀, L2.extend len b₀)
-
--- ADVANCED OPERATIONS
-
--- zip after extending to match
-@[simp]
-def match_zipWith
-    (f : α → β → γ)
-    (L1 : List α) (L2 : List β)
-    (a₀ : α) (b₀ : β) :=
-  let (L1, L2) := match_extend L1 L2 a₀ b₀
-  zipWith f L1 L2
-
--- merge strictly sorted lists into a strictly sorted list
-@[simp]
-def merge_nodups
-    (L1 : List σ) (L2 : List σ)
-    (cmp : σ → σ → Ordering := by exact fun a b => compare a b) :=
+def nodupsMerge
+    (L1 L2 : List α)
+    (cmp : α → α → Ordering := by exact compare) :=
   match L1, L2 with
-  | [], [] => []
-  | [], I => I
-  | I, [] => I
-  | i1 :: I1, i2 :: I2 =>
-  match cmp i1 i2 with
-  | .lt => i1 :: merge_nodups I1 (i2 :: I2) cmp
-  | .gt => i2 :: merge_nodups (i1 :: I2) I2 cmp
-  | .eq => i1 :: merge_nodups I1 I2 cmp
+  | [], L2' => L2'
+  | L1', [] => L1'
+  | a :: L1', b :: L2' =>
+  match cmp a b with
+  | .lt => a :: nodupsMerge L1' (b :: L2') cmp
+  | .gt => b :: nodupsMerge (a :: L1') L2' cmp
+  | .eq => a :: nodupsMerge L1' L2' cmp
 
 end List
 
-namespace Tree
-
-attribute [simp] map
-
--- DECONSTRUCTION
-
--- delete the head index slice (like tail)
-@[simp]
-def step : Tree α → Option (Hyperlist α)
-| nil => none
-| node a TL _ => some (.mk a TL)
-
--- get the slice at the head index
-@[simp]
-def slice : Tree α → Tree α
-| nil => nil
-| node _ _ DM => DM
-
--- BASIC OPERATIONS
-
--- length of leftmost chain
-@[simp]
-def length : Tree α → ℕ
-| nil => 0
-| node _ TL _ => TL.length + 1
-
--- copy along the nodes of leftmost chain
-@[simp]
-def replicate : ℕ → α → Tree α
-| 0, _ => nil
-| n + 1, a => node a (replicate n a) nil
-
--- append second leftmost chain to start of first leftmost chain
-@[simp]
-def append : Tree α → Tree α → Tree α
-| nil, T => T
-| node a TL DM, T => node a (TL.append T) DM
-
--- extend leftmost chain to length by appending a replicated single
-@[simp]
-def extend : Tree α → ℕ → α → Tree α
-| T, n, a₀ => T.append (replicate (n - T.length) a₀)
-
--- extend the shorter to match the length of the longer
-@[simp]
-def match_extend (T1 : Tree α) (T2 : Tree β) (a₀ : α) (b₀ : β) :=
-  let len := max T1.length T2.length
-  (T1.extend len a₀, T2.extend len b₀)
-
-end Tree
-
 namespace Hyperlist
 
--- DECONSTRUCTION
-
--- delete the head index slice (like tail)
+/-- Converts a higher-dimensional hyperlist into a list of lower-dimensional hyperlists,
+raising the dimension for `single` when necessary -/
 @[simp]
-def step : Hyperlist α → Option (Hyperlist α)
-| mk _ T => T.step
+def toList : Hyperlist α → List (Hyperlist α)
+| single a => [single a]
+| list L => L
 
--- get the slice at the head index
+/-- The value at the `0` index, or `none` if it does not exist -/
 @[simp]
-def slice : Hyperlist α → Hyperlist α
-| mk a T => mk a T.slice
+def getRoot? : Hyperlist α → Option α
+| single a => some a
+| list [] => none
+| list (H :: _) => H.getRoot?
 
--- CONSTRUCTION
-
--- construct from tail and head slice
+/-- The value at index `I[d]` along each dimension `d`, or `none` if any `I[d]` is out-of-bounds -/
 @[simp]
-def node : Option (Hyperlist α) → Hyperlist α → Hyperlist α
-| none, mk a DM => mk a DM
-| some (mk a_ TL), mk a DM => mk a (.node a_ TL DM)
+def getElem? : Hyperlist α → List ℕ → Option α
+| H, [] => H.getRoot?
+| H, i :: I => match H.toList[i]? with | none => none | some H' => H'.getElem? I
 
--- map functions on tail (f) and head (g)
-@[simp]
-def map_node
-    (f : Hyperlist α → Hyperlist β)
-    (g : Hyperlist α → Hyperlist β)
-    (L : Hyperlist α) :=
-  node (Option.map f L.step) (g L.slice)
-
--- zip functions on tail (f) and head (g)
-@[simp]
-def zip_node
-    (f : Hyperlist α → Hyperlist β → Hyperlist γ)
-    (g : Hyperlist α → Hyperlist β → Hyperlist γ)
-    (L1 : Hyperlist α) (L2 : Hyperlist β) :=
-  node (Option.zip f L1.step L2.step) (g L1.slice L2.slice)
-
--- RETRIEVAL
-
--- 0 index in all dimensions
-@[simp]
-def get_head : Hyperlist α → α
-| mk a _ => a
-
--- tail after i deletions
-@[simp]
-def get_step? (L : Hyperlist α) (i : ℕ) :=
-  Fin.foldrM i (fun _ => step) L
-
--- slice after stepping is[j] in each jth dimension
-@[simp]
-def get_slice? (L : Hyperlist α) (is : List ℕ) :=
-  List.foldlM (fun acc i => Option.map slice (acc.get_step? i)) L is
-
--- is[j] index in each jth dimension
-@[simp]
-def get? (L : Hyperlist α) (is : List ℕ) :=
-  Option.map get_head (L.get_slice? is)
-
--- BASIC OPERATIONS
-
--- predecessor of length in 0th dimension
-@[simp]
-def pred_length : Hyperlist α → ℕ
-| mk _ T => T.length
-
--- length in 0th dimension (≠ 0)
+/-- Length of the top dimension -/
 @[simp]
 def length : Hyperlist α → ℕ
-| L => L.pred_length.succ
+| single _ => 1
+| list L => L.length
 
--- map by element
+/-- Number of nodes, used to show well-founded recursion -/
+def size : Hyperlist α → ℕ
+| single _ => 1
+| list L => List.foldl (. + size .) 0 L + 1
+
+/-- Sub-hyperlists are smaller than their parent hyperlists -/
+theorem sub_size_le (L : List (Hyperlist α)) : ∀ H ∈ L, H.size < (list L).size := by
+  sorry
+
+/-- Applies `f` to each element -/
 @[simp]
 def map : (α → β) → Hyperlist α → Hyperlist β
-| f, mk a T => mk (f a) (T.map f)
+| f, single a => single (f a)
+| f, list L => list (List.map (map f) L)
 
--- 1D list of n.succ length
+/-- Applies `f` to corresponding elements -/
 @[simp]
-def replicate_succ : ℕ → α → Hyperlist α
-| n, a => mk a (Tree.replicate n a)
+def zipWith : (α → β → γ) → Hyperlist α → Hyperlist β → Hyperlist γ
+| f, single a, single b => single (f a b)
+| _, single _, list [] => list []
+| _, list [], single _ => list []
+| f, single a, list (H2 :: L2) => zipWith f (single a) H2
+| f, list (H1 :: L1), single b => zipWith f H1 (single b)
+| f, list L1, list L2 => list (List.zipWith (zipWith f) L1 L2)
+termination_by _ L1 L2 => L1.size + L2.size
+decreasing_by
+  all_goals simp_wf
+  any_goals apply sub_size_le; simp
+  . sorry
 
--- append along 0th dimension
+/-- Applies `f` to corresponding elements, using `a₀` and `b₀` for elements without matches -/
 @[simp]
-def append : Hyperlist α → Tree α → Hyperlist α
-| mk a T1, T2 => mk a (T1.append T2)
+def zipWithPad : (α → β → γ) → α → β → Hyperlist α → Hyperlist β → Hyperlist γ
+| f, _, _, single a, single b => single (f a b)
+| f, _, b₀, single a, list [] => single (f a b₀)
+| f, a₀, _, list [], single b => single (f a₀ b)
+| f, a₀, b₀, single a, list (H2 :: L2) =>
+  list (zipWithPad f a₀ b₀ (single a) H2 :: List.map (map (f a₀ .)) L2)
+| f, a₀, b₀, list (H1 :: L1), single b =>
+  list (zipWithPad f a₀ b₀ H1 (single b) :: List.map (map (f . b₀)) L1)
+| f, a₀, b₀, list L1, list L2 =>
+  list (List.zipWithPad (zipWithPad f a₀ b₀) (single a₀) (single b₀) L1 L2)
+termination_by _ _ _ L1 L2 => L1.size + L2.size
+decreasing_by
+  all_goals simp_wf
+  any_goals apply sub_size_le; simp
+  . sorry
 
--- extend along 0th dimension to length n.succ
-@[simp]
-def extend_succ : Hyperlist α → ℕ → α → Hyperlist α
-| mk a T, n, a₀ => mk a (T.extend n a₀)
-
--- extend along 0th dimension to length n
-@[simp]
-def extend : Hyperlist α → ℕ → α → Hyperlist α
-| L, n, a₀ => L.extend_succ n.pred a₀
-
--- extend in 0th dimension to same length
-@[simp]
-def match_extend (L1 : Hyperlist α) (L2 : Hyperlist β) (a₀ : α) (b₀ : β) :=
-  let pred_len := max L1.pred_length L2.pred_length
-  (L1.extend_succ pred_len a₀, L2.extend_succ pred_len b₀)
-
--- ADVANCED OPERATIONS
-
--- zip slices along 0th dimension
-@[simp]
-def zipWith :
-    (Hyperlist α → Hyperlist β → Hyperlist γ) →
-    Hyperlist α → Hyperlist β →
-    Hyperlist γ
-| f, mk a (.node a_ TL1 DM1), mk b (.node b_ TL2 DM2) =>
-  let ⟨c_, TL⟩ := zipWith f (mk a_ TL1) (mk b_ TL2)
-  let ⟨c, DM⟩ := f (mk a DM1) (mk b DM2)
-  mk c (.node c_ TL DM)
-| f, mk a _, mk b _ =>
-  let ⟨c, _⟩ := f (mk a .nil) (mk b .nil)
-  mk c .nil
-
--- zip slices after extending to match
-@[simp]
-def match_zipWith
-    (f : Hyperlist α → Hyperlist β → Hyperlist γ)
-    (L1 : Hyperlist α) (L2 : Hyperlist β)
-    (a₀ : α) (b₀ : β) :=
-  let (L1, L2) := match_extend L1 L2 a₀ b₀
-  zipWith f L1 L2
-
--- zip in every dimension along dimension labels
--- consider missing dimensions as unwrapped slices
--- truncate when dimension labels end
-@[simp]
-def merge_and_match_zipWith
-    (f : α → β → γ)
-    (I1 I2 : List σ)
-    (L1 : Hyperlist α) (L2 : Hyperlist β)
-    (a₀ : α) (b₀ : β)
-    (cmp : σ → σ → Ordering := by exact fun a b => compare a b) :=
+/-- Applies `f` to corresponding elements,
+merging according to dimension labels in strictly increasing `I1` and `I2`,
+using `a₀` and `b₀` for elements without matches,
+producing a hyperlist with dimension labels `nodupsMerge I1 I2` -/
+def nodupsMerge_zipWithPad
+    (f : α → β → γ) (a₀ : α) (b₀ : β)
+    (I1 I2 : List σ) (H1 : Hyperlist α) (H2 : Hyperlist β)
+    (cmp : σ → σ → Ordering := by exact compare) :=
   match I1, I2 with
-  | [], [] => mk (f L1.get_head L2.get_head) .nil
-  | [], _ :: I => map_node (map (f a₀ .)) (merge_and_match_zipWith f [] I L1 . a₀ b₀ cmp) L2
-  | _ :: I, [] => map_node (map (f . b₀)) (merge_and_match_zipWith f I [] . L2 a₀ b₀ cmp) L1
-  | i1 :: I1, i2 :: I2 =>
-  match cmp i1 i2 with
-  | .lt => map_node (map (f . b₀)) (merge_and_match_zipWith f I1 (i2 :: I2) . L2 a₀ b₀ cmp) L1
-  | .gt => map_node (map (f a₀ .)) (merge_and_match_zipWith f (i1 :: I1) I2 L1 . a₀ b₀ cmp) L2
-  | .eq => match_zipWith (merge_and_match_zipWith f I1 I2 . . a₀ b₀ cmp) L1 L2 a₀ b₀
+  | [], _ => zipWithPad f a₀ b₀ H1 H2
+  | _, [] => zipWithPad f a₀ b₀ H1 H2
+  | j :: I1', k :: I2' =>
+  match cmp j k with
+  | .lt =>
+    match H1 with
+    | list (H1' :: L1) =>
+      list (nodupsMerge_zipWithPad
+        f a₀ b₀ I1' (k :: I2') H1' H2 cmp :: List.map (map (f . b₀)) L1 )
+    | _ => nodupsMerge_zipWithPad f a₀ b₀ I1' (k :: I2') H1 H2 cmp
+  | .gt =>
+    match H2 with
+    | list (H2' :: L2) =>
+      list (nodupsMerge_zipWithPad
+        f a₀ b₀ (j :: I1') I2' H1 H2' cmp :: List.map (map (f a₀ .)) L2 )
+    | _ => nodupsMerge_zipWithPad f a₀ b₀ (j :: I1') I2' H1 H2 cmp
+  | .eq =>
+    match H1, H2 with
+    | single a, single b => single (f a b)
+    | single a, list [] => single (f a b₀)
+    | list [], single b => single (f a₀ b)
+    | single a, list (H2 :: L2) =>
+      list (nodupsMerge_zipWithPad
+        f a₀ b₀ I1' I2' (single a) H2 cmp :: List.map (map (f a₀ .)) L2 )
+    | list (H1 :: L1), single b =>
+      list (nodupsMerge_zipWithPad
+        f a₀ b₀ I1' I2' H1 (single b) cmp :: List.map (map (f . b₀)) L1 )
+    | list L1, list L2 =>
+      list (List.zipWithPad
+        (nodupsMerge_zipWithPad f a₀ b₀ I1' I2' . . cmp) (single a₀) (single b₀) L1 L2 )
 
 end Hyperlist
