@@ -1,69 +1,68 @@
 # Automate Polynomial
-This project aims to automate proofs
-about polynomial degree, coefficients, and evaluation
-in Lean 4.
 
-### Note
-* `R` is some space: `R : Type*`
-* `R` forms a semiring: `[Semiring R]`
-* `p` and `q` are polynomials over `R`: `p : R[X]`, `q : R[X]`
-
-## Goals
-* General coefficient equality: `p.coeff n = c` where `n : Nat`, `c : R`
-* Degree upper bounds: `p.degree <= D` where `D : WithBot Nat`
-* Degree equality: `p.degree = D` where `D : WithBot Nat`
-* Leading coefficient equality: `p.leadingCoeff = c` where `c : R`
-* Evaluation equality: `p.eval x = y` where `x : R`, `y : R`
-* Expansion equality: `p = c0 + c1 * X + ... cN * X ^ N` where
-`N : Nat`, `c0 : R`, `c1 : R`, ... `cN : R`
+We aim to design one model
+for proof-by-reflection systems in Lean 4
+and follow this model to automate proof
+of degrees, coefficients, evaluations, and expansions
+for univariate and multivariate polynomials.
 
 ## Approach
-By defining type class instances for base cases such as
-the zero polynomial `0`,
-constant polynomials `C c` where `c : R`,
-the identity polynomial `X`, etc.,
-and instances for closure over operations such as
-power `p ^ n` where `n : Nat`, addition `p + q`, multiplication `p * q`, etc.,
-reflection proofs are constructed by Lean's type class inference
-and other introduced search tactics.
 
-Aligning with this idea,
-we will use the term "inference rules" to refer to and interchangably with
-definitions of type class instances in Lean.
+We employ type class inference to construct representations
+of properties of polynomials with witnesses of their correctness
+from the bottom up.
+To handle representations requiring more strict assumptions
+(degree equality for example, which requires that leading terms do not cancel)
+we implemented the tactic `infer_instance_trying`
+which tries a helper tactic on any subgoal where Lean’s inference fails.
 
-### Type Classes
-Type classes constructing an effetive reflection system
-contain two essential components:
+## Model
 
-* a value specifying some information about the polynomial
-* proof that the polynomial conforms to the specification
+We specify three levels of abstraction.
 
-### Inference Rules
-In order for the inferred instance's proof
-to resolve a proposition,
-the inference rules must define the specifier value
-in such a way that it is definitionally equivalent
-to its representation in the proposition.
+* A **Signature** declares necessary *Inference Rules*,
+which yield instances for a generic type class.
+* The **Interface** extends multiple signatures
+with a specified *Reflection Class* asserting the target property.
+*Tactics* to automate proof of goals can be implemented
+for generic representations.
+* The **Implementation** instantiates an interface
+with a specified *Representation*
+and implements rules declared in the signatures.
 
-### Inference System
-To avoid circularity during the inference process,
-which would have a major impact on performance,
-the inference rules must abide by a directional constraint.
-Namely, the result of an inference rule
-should be stronger than its individual arguments.
-For instance, suppose the weaker `a : A` and `b : B` together
-result in the stronger `c : C`.
-In this case,
-we should only define the inference rule `instance : [a] -> [b] -> c`
-and leave the converse `example : [c] -> a` and `example : [c] -> b`
-inaccessible to the inference system.
+## Reflection
 
-### Tactics
-Representations which lead to useful results may require stronger assumptions,
-which can themselves be resolved by type class instances
-from the rule's arguments.
-For more general arguments than what can be inferred,
-we introduce search tactics that allow the user to specify
-combining tactics to try on those subgoals,
-or indicate forms of subgoals that should be admitted
-and have their proofs deferred to the user.
+We identified five properties relevant
+to univariate and multivariate polynomials
+(listed reflection classes are for univariate polynomials).
+
+* `DegreeEq`: exact degree (*Sensitive*)
+* `DegreeLe`: greedy upper bound on degree
+* `LeadingCoeff`: exact leading coefficients (*Sensitive*)
+* `Coeffs`: exact specification of all coefficients
+* `Eval`: exact specification of evaluations at all points
+
+Non-*Sensitive* inference rules do not depend on leading term cancellations.
+This enables quick verification of an upper bound with `DegreeLe`, for example,
+that is only imperfect when leading terms cancel.
+
+*Sensitive* inference rules require proof that leading terms do not cancel.
+`infer_instance_trying` treats these problems,
+when represented as equivalent propositions on `LeadingCoeff` instances,
+as typical subgoals and verifies them when they hold.
+
+## Representations
+
+We represented evaluations as lambda functions
+and univariate coefficients as dense lists.
+We implemented unboundedly-higher-dimensional dense lists
+for multivariate coefficients,
+in which index `[i,j,...k]` holds the `X^i*Y^j*...Z^k` coefficient.
+
+## Future Work
+
+Future work will improve the efficiency and strength
+of the systems in this project.
+Sparse and array representations of coefficients are priorities.
+Search tactics beyond `infer_instance_trying` will also be explored
+for more complete automation.

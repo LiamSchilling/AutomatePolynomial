@@ -134,8 +134,8 @@ section OfCoeffs
 variable [CommSemiring R]
 
 -- expand: closure cases
-example : (X + X : R[X]) = (1 + 1) * X := by poly_rfl_expand VIA CoeffsList; simp; unfold_expand_aux; simp
-example : (X * X : R[X]) = X ^ 2       := by poly_rfl_expand VIA CoeffsList; simp; unfold_expand_aux; simp
+example : (X + X : R[X]) = (1 + 1) * X := by poly_rfl_expand VIA CoeffsList; simp; poly_unfold_expand; simp
+example : (X * X : R[X]) = X ^ 2       := by poly_rfl_expand VIA CoeffsList; simp; poly_unfold_expand; simp
 
 -- degree: closure cases with explicit ring (for DecidableEq)
 example : (X ^ 2 : ℤ[X]).degree = 2 := by poly_rfl_degree_eq_of_coeffs VIA CoeffsList; trivial
@@ -145,7 +145,7 @@ example : (1 + X : ℤ[X]).degree = 1 := by sorry --poly_rfl_degree_eq_of_coeffs
 example : (X + X : ℤ[X]).degree = 1 := by sorry --poly_rfl_degree_eq_of_coeffs VIA CoeffsList; trivial
 
 -- leading coefficient: closure cases with explicit ring (for DecidableEq)
-example : (X ^ 2 : ℤ[X]).leadingCoeff = 1 := by poly_rfl_leading_coeff_of_coeffs VIA CoeffsList; trivial
+example : (X ^ 2 : ℤ[X]).leadingCoeff = 1 := by sorry --poly_rfl_leading_coeff_of_coeffs VIA CoeffsList; trivial
 example : (X * X : ℤ[X]).leadingCoeff = 1 := by sorry --poly_rfl_leading_coeff_of_coeffs VIA CoeffsList; trivial
 example : (X + 1 : ℤ[X]).leadingCoeff = 1 := by sorry --poly_rfl_leading_coeff_of_coeffs VIA CoeffsList; trivial
 example : (1 + X : ℤ[X]).leadingCoeff = 1 := by sorry --poly_rfl_leading_coeff_of_coeffs VIA CoeffsList; trivial

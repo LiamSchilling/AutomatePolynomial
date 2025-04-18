@@ -23,26 +23,31 @@ section ReflectionClasses
 variable {p q : R[X]}
 
 /-- Asserts upper bound on degree -/
+@[ext]
 class DegreeLe (p : R[X]) where
   D : WithBot ℕ
   isLe : p.degree ≤ D
 
 /-- Asserts exact degree -/
+@[ext]
 class DegreeEq (p : R[X]) where
   D : WithBot ℕ
   isEq : p.degree = D
 
 /-- Asserts exact leading coefficient -/
+@[ext]
 class LeadingCoeff (p : R[X]) where
   c : R
   isEq : p.leadingCoeff = c
 
 /-- Asserts exact coefficients with a generic representation -/
+@[ext]
 class Coeffs (α : R[X] → Type*) (f : ∀ p, α p → ℕ → R) (p : R[X]) where
   C : α p
   isEq : p.coeff = f p C
 
 /-- Asserts exact evaluation with a generic representation -/
+@[ext]
 class Eval (α : R[X] → Type*) (f : ∀ p, α p → R → R) (p : R[X]) where
   F : α p
   isEq : p.eval = f p F

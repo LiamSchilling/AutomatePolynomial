@@ -29,7 +29,7 @@ theorem getElem?_zipWithPad {f : α → β → γ} {n : ℕ} :
     | some a, none => some (f a b₀)
     | none, some b => some (f a₀ b)
     | none, none => none := by
-  sorry
+  cases L1 <;> cases L2 <;> cases n <;> simp <;> apply getElem?_zipWithPad
 
 /-- `List.getElem? ∘ Option.getD` on `zipWithPad`
 can be simplified to `List.getElem? ∘ Option.getD` on the lists,

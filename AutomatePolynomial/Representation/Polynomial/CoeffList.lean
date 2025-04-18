@@ -18,6 +18,21 @@ variable [Semiring R]
 def reps (p : R[X]) (C : List R) :=
   ∀ n, p.coeff n = C[n]?.getD 0
 
+@[simp]
+theorem reps_zero :
+    reps (0 : R[X]) [] := by
+  unfold reps; simp
+
+@[simp]
+theorem reps_C:
+    reps (C c : R[X]) [c] := by
+  unfold reps; intro n; rw[coeff_C]; cases n <;> simp
+
+@[simp]
+theorem reps_X:
+    reps (X : R[X]) [0, 1] := by
+  unfold reps; intro n; rw[coeff_X]; cases n <;> simp; rename_i n; cases n <;> simp
+
 /-- Coefficient list operation corresponding to polynomial addition -/
 @[simp]
 def add (L1 L2 : List R) :=
@@ -125,7 +140,7 @@ theorem reps_mul {L1 L2 : List R}
     cases Nat.decLt n L2.length.pred <;> (rename_i h; simp at h)
     . rw[List.getElem?_eq_none]; simp; simpa
     . rw[(List.getElem?_eq_some_getElem_iff (by simpa)).mpr trivial]; simp
-  . rename_i L1'; sorry
+  . sorry
 
 /-- Coefficient list operation corresponding to polynomial power -/
 @[simp]
@@ -143,9 +158,8 @@ theorem length_power {L : List R} :
 theorem reps_power {L : List R}
     (h : reps p L) :
     reps (p ^ n) (power n L) := by
-  cases n <;> simp
-  . intro n; rw[coeff_one]; cases n <;> simp
-  . rw[pow_succ]; sorry
+  cases n; exact reps_C
+  sorry
 
 end CommSemiring
 
@@ -153,25 +167,73 @@ section Semiring
 
 variable [Semiring R]
 
-/-- TODO: CLEAN & DOCSTRING
+/-- Asserts that a coefficient list has no zeros on leading terms -/
+@[simp]
+def normal [DecidablePred (Eq 0 : R → Prop)] (L : List R) :=
+  match L.reverse with | [] => True | c :: _ => 0 ≠ c
 
-given coefficients [c0, c1, ... cn]
-computes abstract polynomial (cn*x^n + ... c1*x + c0) -/
-noncomputable def expandAux (cs : List R) (n : ℕ) :=
-  match cs with
+/-- Coefficient list operation to drop zeros on leading terms -/
+@[simp]
+def normalize [DecidablePred (Eq 0 : R → Prop)] (L : List R) :=
+  (L.reverse.dropWhile (Eq 0 : R → Prop)).reverse
+
+theorem getD_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R} {n : ℕ} :
+    L[n]?.getD 0 = (normalize L)[n]?.getD 0 :=
+  sorry
+
+theorem reps_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R}
+    (h : reps p L) :
+    reps p (normalize L) := by
+  unfold reps; intro; rw[←getD_normalize]; apply h
+
+theorem normal_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R} :
+    normal (normalize L) :=
+  sorry
+
+theorem normalize_idem [DecidablePred (Eq 0 : R → Prop)] {L : List R} :
+    normal L → L = normalize L := by
+  intro h; simp at h
+  cases hh : L.reverse
+  . rw[List.reverse_eq_nil_iff.mp hh]; simp
+  . simp; rw[hh, List.dropWhile_cons_of_neg, ←hh, List.reverse_reverse]; rw[hh] at h; simp; exact h
+
+/-- Retrieves the degree from a normal coefficient list -/
+@[simp]
+def degree_if_normal (L : List R) :=
+  match L.length with | 0 => ⊥ | l' + 1 => l'
+
+def degree_eq_of_normal [DecidablePred (Eq 0 : R → Prop)] {L : List R}
+    (h1 : normal L) (h2 : reps p L) :
+    p.degree = degree_if_normal L := by
+  sorry
+
+/-- Retrieves the leading coefficient from a normal coefficient list -/
+@[simp]
+def leadingCoeff_if_normal (L : List R) :=
+  match L with | [] => 0 | c :: _ => c
+
+def leadingCoeff_eq_of_normal [DecidablePred (Eq 0 : R → Prop)] {L : List R}
+    (h1 : normal L) (h2 : reps p L) :
+    p.leadingCoeff = leadingCoeff_if_normal L := by
+  sorry
+
+/-- given coefficients [c0, c1, ... cm]
+computes polynomial (cm*x^m+n + ... c1*x^1+n + c0*x^n) -/
+noncomputable def expand (L : List R) (n : ℕ) :=
+  match L with
   | [] => 0
-  | c :: cs => expandAux cs n.succ + C c * X ^ n
+  | c :: L => expand L n.succ + C c * X ^ n
 
-lemma expandAux_coeff
-    {cs : List R} {N : ℕ} :
-    (expandAux cs N).coeff n =
-    if n < N then 0 else cs[n - N]?.getD 0 := by
-  cases cs
-  . unfold expandAux
+theorem expand_coeff
+    {L : List R} {N : ℕ} :
+    (expand L N).coeff n =
+    if n < N then 0 else L[n - N]?.getD 0 := by
+  cases L
+  . unfold expand
     cases inferInstanceAs (Decidable (n < N)) <;> rename_i h
     . rw[if_neg h]; rfl
     . rw[if_pos h]; rfl
-  . unfold expandAux; simp; rw[expandAux_coeff]
+  . unfold expand; simp; rw[expand_coeff]
     cases inferInstanceAs (Decidable (n < N)) <;>
     cases inferInstanceAs (Decidable (n < N + 1)) <;>
     rename_i h1 h2
@@ -186,23 +248,23 @@ lemma expandAux_coeff
       rw[if_neg]; simp
       apply ne_of_lt; assumption
 
-lemma expandAux_eq
-    {p : R[X]} {cs : List R} {N : ℕ} :
+theorem expand_eq
+    {p : R[X]} {L : List R} {N : ℕ} :
     (∀ n, n < N → p.coeff n = 0) →
-    (∀ n, p.coeff (N + n) = cs[n]?.getD 0) →
-    p = expandAux cs N := by
+    (∀ n, p.coeff (N + n) = L[n]?.getD 0) →
+    p = expand L N := by
   intro h1 h2; apply ext; intro n
-  rw[expandAux_coeff]
+  rw[expand_coeff]
   cases inferInstanceAs (Decidable (n < N)) <;> rename_i h3
   . rw[if_neg h3, ←h2]; simp at h3
     apply congrArg; symm; apply Nat.add_sub_of_le; assumption
   . rw[if_pos h3, ←h1]
     assumption
 
-syntax "unfold_expand_aux" : tactic
+syntax "poly_unfold_expand" : tactic
 macro_rules
-  | `(tactic| unfold_expand_aux) =>
-    `(tactic| repeat unfold Polynomial.CoeffList.expandAux)
+  | `(tactic| poly_unfold_expand) =>
+    `(tactic| repeat unfold Polynomial.CoeffList.expand)
 
 end Semiring
 
