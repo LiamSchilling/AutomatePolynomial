@@ -14,6 +14,10 @@ section Semiring
 
 variable [Semiring R]
 
+def ofNonZeroCoeffs (p : R[X]) : R[X] := Polynomial.ofFinsupp
+  ⟨p.support.filterMap (fun i => if i = 0 then none else some (i - 1)) (fun a a' b h => by sorry),
+    fun i => Polynomial.coeff p (i + 1), sorry⟩
+
 /-- Representation invariant for coefficient lists -/
 def reps (p : R[X]) (C : List R) :=
   ∀ n, p.coeff n = C[n]?.getD 0
@@ -149,17 +153,23 @@ def power (n : ℕ) (L : List R) :=
   | 0 => [1]
   | n' + 1 => mul (power n' L) L
 
+theorem power_succ {L : List R} :
+    power (n + 1) L = mul (power n L) L := by
+  simp
+
 theorem length_power {L : List R} :
     (power n L).length = n * L.length.pred + 1 := by
   cases n <;> simp
   rw[length_mul, length_power]
   rw[add_comm, ←add_assoc]; nth_rw 2 [add_comm]; rw[mul_comm, ←Nat.mul_succ, mul_comm]; rfl
 
-theorem reps_power {L : List R}
-    (h : reps p L) :
+theorem reps_power {L : List R} (h : reps p L) :
     reps (p ^ n) (power n L) := by
-  cases n; exact reps_C
-  sorry
+  induction n with
+  | zero => exact reps_C
+  | succ n ih =>
+    rw [power_succ, pow_succ]
+    exact reps_mul ih h
 
 end CommSemiring
 
@@ -178,7 +188,8 @@ def normalize [DecidablePred (Eq 0 : R → Prop)] (L : List R) :=
   (L.reverse.dropWhile (Eq 0 : R → Prop)).reverse
 
 theorem getD_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R} {n : ℕ} :
-    L[n]?.getD 0 = (normalize L)[n]?.getD 0 :=
+    L[n]?.getD 0 = (normalize L)[n]?.getD 0 := by
+  simp
   sorry
 
 theorem reps_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R}
@@ -187,8 +198,25 @@ theorem reps_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R}
   unfold reps; intro; rw[←getD_normalize]; apply h
 
 theorem normal_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R} :
-    normal (normalize L) :=
-  sorry
+    normal (normalize L) := by
+  simp
+  induction L with
+  | nil => simp
+  | cons c L ih =>
+    simp [List.dropWhile_append]
+    split <;> rename_i tl h
+    <;> by_cases hZero : ∀ x ∈ L, 0 = x
+    · simp
+    · simp
+    · contrapose! h
+      have h' : (∀ x ∈ L, 0 = x) = True := by simp [hZero]; exact hZero
+      simp [h']
+      sorry
+      -- simp [List.length_drop]
+    · contrapose! h
+      have h' : (∀ x ∈ L, 0 = x) = False := by simp [hZero]
+      simp [h', h]
+      sorry
 
 theorem normalize_idem [DecidablePred (Eq 0 : R → Prop)] {L : List R} :
     normal L → L = normalize L := by
