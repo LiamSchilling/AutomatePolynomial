@@ -139,7 +139,7 @@ theorem length_mul {L1 L2 : List R} :
 theorem reps_mul {L1 L2 : List R}
     (h1 : reps p L1) (h2 : reps q L2) :
     reps (p * q) (mul L1 L2) := by
-  induction L1 with
+  induction L1 generalizing p with
   | nil =>
     rw[eq_of_reps_nil h1]
     intro n
@@ -150,9 +150,8 @@ theorem reps_mul {L1 L2 : List R}
     rw[eq_of_reps_cons h1, mul_comm _ X, right_distrib, mul_assoc]
     apply reps_add
     . apply reps_mulC; assumption
-    . apply reps_mulX; apply reps_mul
+    . apply reps_mulX; apply @ih p.tail
       . sorry
-      . assumption
 
 /-- Coefficient list operation corresponding to polynomial power -/
 @[simp]
