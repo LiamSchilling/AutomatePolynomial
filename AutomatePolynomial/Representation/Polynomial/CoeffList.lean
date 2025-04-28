@@ -1,5 +1,5 @@
+import AutomatePolynomial.Representation.Polynomial.Defs
 import AutomatePolynomial.Hyperlist.Lemmas
-import Mathlib.Algebra.Polynomial.Degree.Lemmas
 
 /-!
 # *Representation*: Coefficient Lists
@@ -14,28 +14,29 @@ section Semiring
 
 variable [Semiring R]
 
-def ofNonZeroCoeffs (p : R[X]) : R[X] := Polynomial.ofFinsupp
-  ⟨p.support.filterMap (fun i => if i = 0 then none else some (i - 1)) (fun a a' b h => by sorry),
-    fun i => Polynomial.coeff p (i + 1), sorry⟩
-
 /-- Representation invariant for coefficient lists -/
 def reps (p : R[X]) (C : List R) :=
   ∀ n, p.coeff n = C[n]?.getD 0
 
-@[simp]
 theorem reps_zero :
     reps (0 : R[X]) [] := by
   unfold reps; simp
 
-@[simp]
-theorem reps_C:
+theorem reps_C :
     reps (C c : R[X]) [c] := by
   unfold reps; intro n; rw[coeff_C]; cases n <;> simp
 
-@[simp]
-theorem reps_X:
+theorem reps_X :
     reps (X : R[X]) [0, 1] := by
   unfold reps; intro n; rw[coeff_X]; cases n <;> simp; rename_i n; cases n <;> simp
+
+theorem eq_of_reps_cons :
+    reps (p : R[X]) (c :: L) → p = C c + p.tail * X := by
+  sorry
+
+theorem eq_of_reps_nil :
+    reps (p : R[X]) [] → p = 0 := by
+  intro h; apply leadingCoeff_eq_zero.mp; apply h
 
 /-- Coefficient list operation corresponding to polynomial addition -/
 @[simp]
@@ -71,7 +72,7 @@ theorem getD_mulC {n : ℕ} {L : List R} :
   . rw[List.getElem?_eq_none]; simp; assumption
   . rw[(List.getElem?_eq_some_getElem_iff h).mpr trivial]; simp
 
-theorem rep_mulC {L : List R}
+theorem reps_mulC {L : List R}
     (h : reps p L) :
     reps (C c * p) (mulC c L) := by
   intro; rw[getD_mulC, ←h]; simp
@@ -138,13 +139,20 @@ theorem length_mul {L1 L2 : List R} :
 theorem reps_mul {L1 L2 : List R}
     (h1 : reps p L1) (h2 : reps q L2) :
     reps (p * q) (mul L1 L2) := by
-  cases L1 <;> unfold mul
-  . intro n
-    rw[leadingCoeff_eq_zero.mp (h1 p.natDegree)]
+  induction L1 with
+  | nil =>
+    rw[eq_of_reps_nil h1]
+    intro n
     cases Nat.decLt n L2.length.pred <;> (rename_i h; simp at h)
     . rw[List.getElem?_eq_none]; simp; simpa
     . rw[(List.getElem?_eq_some_getElem_iff (by simpa)).mpr trivial]; simp
-  . sorry
+  | cons c L1' ih =>
+    rw[eq_of_reps_cons h1, mul_comm _ X, right_distrib, mul_assoc]
+    apply reps_add
+    . apply reps_mulC; assumption
+    . apply reps_mulX; apply reps_mul
+      . sorry
+      . assumption
 
 /-- Coefficient list operation corresponding to polynomial power -/
 @[simp]
@@ -152,10 +160,6 @@ def power (n : ℕ) (L : List R) :=
   match n with
   | 0 => [1]
   | n' + 1 => mul (power n' L) L
-
-theorem power_succ {L : List R} :
-    power (n + 1) L = mul (power n L) L := by
-  simp
 
 theorem length_power {L : List R} :
     (power n L).length = n * L.length.pred + 1 := by
@@ -167,9 +171,7 @@ theorem reps_power {L : List R} (h : reps p L) :
     reps (p ^ n) (power n L) := by
   induction n with
   | zero => exact reps_C
-  | succ n ih =>
-    rw [power_succ, pow_succ]
-    exact reps_mul ih h
+  | succ n' ih => rw[pow_succ]; exact reps_mul ih h
 
 end CommSemiring
 
