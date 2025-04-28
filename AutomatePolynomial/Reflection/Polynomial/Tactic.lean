@@ -33,6 +33,8 @@ macro_rules
       Polynomial.Rfl.Eval.F,
       Polynomial.Rfl.FormReflection.transform,
       Polynomial.Rfl.PolyClass.inst,
+      Polynomial.Rfl.NormalizerReflection.degreeEq_of_normal,
+      Polynomial.Rfl.NormalizerReflection.leadingCoeff_of_normal,
       compare, compareOfLessAndEq ] )
 
 /-- Performs type-class reflection tactic `t`

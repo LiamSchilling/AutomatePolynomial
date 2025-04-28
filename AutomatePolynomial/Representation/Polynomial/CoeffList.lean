@@ -200,22 +200,26 @@ theorem normalize_idem [DecidablePred (Eq 0 : R → Prop)] {L : List R} :
 /-- Retrieves the degree from a normal coefficient list -/
 @[simp]
 def degree_if_normal (L : List R) :=
-  match L.length with | 0 => ⊥ | l' + 1 => l'
+  match L.length with | 0 => (⊥ : WithBot ℕ) | l' + 1 => some l'
 
-def degree_eq_of_normal [DecidablePred (Eq 0 : R → Prop)] {L : List R}
+theorem degree_eq_of_normal [DecidablePred (Eq 0 : R → Prop)] {L : List R}
     (h1 : normal L) (h2 : reps p L) :
     p.degree = degree_if_normal L := by
-  sorry
+  cases L
+  . rw[leadingCoeff_eq_zero.mp (h2 p.natDegree)]; rfl
+  . sorry
 
 /-- Retrieves the leading coefficient from a normal coefficient list -/
 @[simp]
 def leadingCoeff_if_normal (L : List R) :=
-  match L with | [] => 0 | c :: _ => c
+  match L.reverse with | [] => 0 | c :: _ => c
 
-def leadingCoeff_eq_of_normal [DecidablePred (Eq 0 : R → Prop)] {L : List R}
+theorem leadingCoeff_eq_of_normal [DecidablePred (Eq 0 : R → Prop)] {L : List R}
     (h1 : normal L) (h2 : reps p L) :
     p.leadingCoeff = leadingCoeff_if_normal L := by
-  sorry
+  cases L
+  . rw[leadingCoeff_eq_zero.mp (h2 p.natDegree)]; rfl
+  . sorry
 
 /-- given coefficients [c0, c1, ... cm]
 computes polynomial (cm*x^m+n + ... c1*x^1+n + c0*x^n) -/
