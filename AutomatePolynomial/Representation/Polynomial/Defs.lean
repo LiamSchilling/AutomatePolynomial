@@ -19,7 +19,13 @@ def tail (p : R[X]) :=
     fun i => coeff p (i + 1),
     by
       intro i; constructor
-      . sorry
-      . sorry ⟩
+      . intro h; simp at h
+        match h with
+        | ⟨j, h1, h2⟩ =>
+          cases j; contradiction; rename_i j'
+          . simp at h2; rw[←h2]; exact h1
+      . intro h; simp; constructor; constructor
+        . exact h
+        . rfl ⟩
 
 end Polynomial

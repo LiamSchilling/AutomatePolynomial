@@ -30,9 +30,15 @@ theorem reps_X :
     reps (X : R[X]) [0, 1] := by
   unfold reps; intro n; rw[coeff_X]; cases n <;> simp; rename_i n; cases n <;> simp
 
+theorem reps_tail :
+    reps (p : R[X]) (c :: L) → reps p.tail L := by
+  intro h n; apply h
+
 theorem eq_of_reps_cons :
     reps (p : R[X]) (c :: L) → p = C c + p.tail * X := by
-  sorry
+  intro h; ext n; cases n
+  . simp; apply h
+  . unfold tail; simp
 
 theorem eq_of_reps_nil :
     reps (p : R[X]) [] → p = 0 := by
@@ -150,8 +156,7 @@ theorem reps_mul {L1 L2 : List R}
     rw[eq_of_reps_cons h1, mul_comm _ X, right_distrib, mul_assoc]
     apply reps_add
     . apply reps_mulC; assumption
-    . apply reps_mulX; apply @ih p.tail
-      . sorry
+    . apply reps_mulX; apply ih; apply reps_tail; assumption
 
 /-- Coefficient list operation corresponding to polynomial power -/
 @[simp]
@@ -190,8 +195,18 @@ def normalize [DecidablePred (Eq 0 : R → Prop)] (L : List R) :=
 
 theorem getD_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R} {n : ℕ} :
     L[n]?.getD 0 = (normalize L)[n]?.getD 0 := by
-  simp
-  sorry
+  induction L generalizing n with
+  | nil => simp
+  | cons c L' ih =>
+    simp at ih
+    cases n <;> (
+      simp; try rw[ih]
+      induction L'.reverse with
+      | nil => by_cases h: 0 = c <;> simp[h]
+      | cons c' L'' ih' =>
+        by_cases h: 0 = c'
+        . rw[←h, show 0 :: L'' ++ [c] = 0 :: (L'' ++ [c]) by rfl]; simp; exact ih'
+        . simp[h] )
 
 theorem reps_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R}
     (h : reps p L) :
@@ -200,7 +215,6 @@ theorem reps_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R}
 
 theorem normal_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R} :
     normal (normalize L) := by
-  simp
   induction L with
   | nil => simp
   | cons c L ih =>
@@ -236,7 +250,19 @@ theorem degree_eq_of_normal [DecidablePred (Eq 0 : R → Prop)] {L : List R}
     p.degree = degree_if_normal L := by
   cases L
   . rw[leadingCoeff_eq_zero.mp (h2 p.natDegree)]; rfl
-  . sorry
+  . rename_i c L'; revert h2 h1
+    rw[←List.reverse_reverse L']; cases L'.reverse <;> (intro h1 h2; simp at h1 h2)
+    . apply degree_eq_of_le_of_coeff_ne_zero
+      . sorry
+      . rw[h2]; intro h3; symm at h3; contradiction
+    . rename_i c' L''
+      apply degree_eq_of_le_of_coeff_ne_zero
+      . sorry
+      . rw[h2]
+        suffices h3 : (c :: (L''.reverse ++ [c']))[(c' :: L'').reverse.length]?.getD 0 = c' from by
+          rw[h3]; symm; exact h1
+        rw[←List.reverse_reverse (c :: _), List.getElem?_reverse]
+        all_goals simp
 
 /-- Retrieves the leading coefficient from a normal coefficient list -/
 @[simp]
@@ -246,9 +272,8 @@ def leadingCoeff_if_normal (L : List R) :=
 theorem leadingCoeff_eq_of_normal [DecidablePred (Eq 0 : R → Prop)] {L : List R}
     (h1 : normal L) (h2 : reps p L) :
     p.leadingCoeff = leadingCoeff_if_normal L := by
-  cases L
-  . rw[leadingCoeff_eq_zero.mp (h2 p.natDegree)]; rfl
-  . sorry
+  unfold leadingCoeff; unfold natDegree; rw[degree_eq_of_normal h1 h2, h2]; simp
+  rw[←List.reverse_reverse L]; cases L.reverse <;> simp[WithBot.unbotD, WithBot.recBotCoe]
 
 /-- given coefficients [c0, c1, ... cm]
 computes polynomial (cm*x^m+n + ... c1*x^1+n + c0*x^n) -/
