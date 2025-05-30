@@ -253,13 +253,33 @@ theorem degree_eq_of_normal [DecidablePred (Eq 0 : R → Prop)] {L : List R}
   . rename_i c L'; revert h2 h1
     rw[←List.reverse_reverse L']; cases L'.reverse <;> (intro h1 h2; simp at h1 h2)
     . apply degree_eq_of_le_of_coeff_ne_zero
-      . sorry
+      . apply degree_le_of_natDegree_le
+        apply Nat.le_of_lt_succ
+        apply (natDegree_lt_iff_degree_lt _).mpr
+        . apply (degree_lt_iff_coeff_zero _ _).mpr
+          intro n h; rw[h2, (getElem?_eq_none_iff _ _).mpr]
+          . rfl
+          . rw[Nat.not_gt_eq]; exact h
+        . by_contra h; rw[h] at h2; absurd h1; apply h2 0
       . rw[h2]; intro h3; symm at h3; contradiction
     . rename_i c' L''
       apply degree_eq_of_le_of_coeff_ne_zero
-      . sorry
+      . apply degree_le_of_natDegree_le
+        apply Nat.le_of_lt_succ
+        apply (natDegree_lt_iff_degree_lt _).mpr
+        . apply (degree_lt_iff_coeff_zero _ _).mpr
+          intro n h; rw[h2, (getElem?_eq_none_iff _ _).mpr]
+          . rfl
+          . rw[Nat.not_gt_eq]
+            suffices h3 :
+                (c' :: L'').reverse.length.succ = (c :: (L''.reverse ++ [c'])).length from by
+              rw[←h3]; exact h
+            rw[List.length_reverse, List.length_cons, List.length_cons]
+            rw[List.length_append, List.length_reverse]; rfl
+        . by_contra h; absurd h1; rw[show 0 = p.coeff L''.length.succ by rw[h]; rfl, h2]; simp
       . rw[h2]
-        suffices h3 : (c :: (L''.reverse ++ [c']))[(c' :: L'').reverse.length]?.getD 0 = c' from by
+        suffices h3 :
+            (c :: (L''.reverse ++ [c']))[(c' :: L'').reverse.length]?.getD 0 = c' from by
           rw[h3]; symm; exact h1
         rw[←List.reverse_reverse (c :: _), List.getElem?_reverse]
         all_goals simp
