@@ -215,23 +215,15 @@ theorem reps_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R}
 
 theorem normal_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R} :
     normal (normalize L) := by
-  induction L with
+  simp [List.dropWhile_append]
+  split <;> rename_i c' L' h; trivial; revert h
+  induction L.reverse with
   | nil => simp
-  | cons c L ih =>
-    simp [List.dropWhile_append]
-    split <;> rename_i tl h
-    <;> by_cases hZero : ∀ x ∈ L, 0 = x
-    · simp
-    · simp
-    · contrapose! h
-      have h' : (∀ x ∈ L, 0 = x) = True := by simp [hZero]; exact hZero
-      simp [h']
-      sorry
-      -- simp [List.length_drop]
-    · contrapose! h
-      have h' : (∀ x ∈ L, 0 = x) = False := by simp [hZero]
-      simp [h', h]
-      sorry
+  | cons c'' L'' ih =>
+    unfold List.dropWhile
+    cases h : decide (0 = c'') <;> simp
+    . intro heq _; rw[←heq]; exact of_decide_eq_false h
+    . exact ih
 
 theorem normalize_idem [DecidablePred (Eq 0 : R → Prop)] {L : List R} :
     normal L → L = normalize L := by
