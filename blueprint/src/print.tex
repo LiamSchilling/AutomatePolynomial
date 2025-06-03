@@ -21,8 +21,14 @@
 
 \usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
 
+\usepackage[print]{blueprint}
+
 \input{macros/common}
 \input{macros/print}
+
+\newif\ifprint
+\newif\ifweb
+\printtrue
 
 \title{AutomatePolynomial}
 \author{Liam Schilling}
