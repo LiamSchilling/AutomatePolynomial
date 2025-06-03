@@ -1,4 +1,0 @@
-import AutomatePolynomial.Reflection.MvPolynomial.CoeffHyperlist
-import AutomatePolynomial.Reflection.MvPolynomial.Degree
-import AutomatePolynomial.Reflection.MvPolynomial.EvalArrow
-import AutomatePolynomial.Reflection.MvPolynomial.Tactic

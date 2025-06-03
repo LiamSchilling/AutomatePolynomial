@@ -42,17 +42,17 @@ example [Nontrivial R]   : (X ^ 1 : R[X]).degree = 1 := by poly_rfl_degree_eq; t
 example [Nontrivial R]   : (X ^ 2 : R[X]).degree = 2 := by poly_rfl_degree_eq
 
 example [Nontrivial R]       : (1 ^ 2   : R[X]).degree = 0 := by poly_rfl_degree_eq_trying <:> poly_infer_try; trivial
-example [NeZero (2 ^ 2 : R)] : (C 2 ^ 2 : R[X]).degree = 0 := by sorry
+--example [NeZero (2 ^ 2 : R)] : (C 2 ^ 2 : R[X]).degree = 0 := by sorry
 example [Nontrivial R]       : (X * X   : R[X]).degree = 2 := by poly_rfl_degree_eq_trying <:> poly_infer_try; trivial
 example [Nontrivial R]       : (1 * X   : R[X]).degree = 1 := by poly_rfl_degree_eq_trying <:> poly_infer_try; trivial
-example [NeZero (2 : R)]     : (C 2 * X : R[X]).degree = 1 := by sorry
+--example [NeZero (2 : R)]     : (C 2 * X : R[X]).degree = 1 := by sorry
 example [Nontrivial R]       : (X * 1   : R[X]).degree = 1 := by poly_rfl_degree_eq_trying <:> poly_infer_try; trivial
-example [NeZero (2 : R)]     : (X * C 2 : R[X]).degree = 1 := by sorry
-example [NeZero (2 : R)]     : (X + X   : R[X]).degree = 1 := by sorry
+--example [NeZero (2 : R)]     : (X * C 2 : R[X]).degree = 1 := by sorry
+--example [NeZero (2 : R)]     : (X + X   : R[X]).degree = 1 := by sorry
 example [Nontrivial R]       : (1 + X   : R[X]).degree = 1 := by poly_rfl_degree_eq_trying <:> poly_infer_try
-example [NeZero (2 : R)]     : (C 2 + X : R[X]).degree = 1 := by sorry
+--example [NeZero (2 : R)]     : (C 2 + X : R[X]).degree = 1 := by sorry
 example [Nontrivial R]       : (X + 1   : R[X]).degree = 1 := by poly_rfl_degree_eq_trying <:> poly_infer_try
-example [NeZero (2 : R)]     : (X + C 2 : R[X]).degree = 1 := by sorry
+--example [NeZero (2 : R)]     : (X + C 2 : R[X]).degree = 1 := by sorry
 
 end DegreeEq
 
@@ -69,17 +69,17 @@ example : (X ^ 1 : R[X]).leadingCoeff = 1 := by poly_rfl_leading_coeff
 example : (X ^ 2 : R[X]).leadingCoeff = 1 := by poly_rfl_leading_coeff
 
 example [Nontrivial R]       : (1 ^ 2   : R[X]).leadingCoeff = 1 := by poly_rfl_leading_coeff_trying <:> poly_infer_try; simp
-example [NeZero (2 ^ 2 : R)] : (C 2 ^ 2 : R[X]).leadingCoeff = 4 := by sorry
+--example [NeZero (2 ^ 2 : R)] : (C 2 ^ 2 : R[X]).leadingCoeff = 4 := by sorry
 example [Nontrivial R]       : (X * X   : R[X]).leadingCoeff = 1 := by poly_rfl_leading_coeff_trying <:> poly_infer_try; simp
 example [Nontrivial R]       : (1 * X   : R[X]).leadingCoeff = 1 := by poly_rfl_leading_coeff_trying <:> poly_infer_try; simp
-example [NeZero (2 : R)]     : (C 2 * X : R[X]).leadingCoeff = 2 := by sorry
+--example [NeZero (2 : R)]     : (C 2 * X : R[X]).leadingCoeff = 2 := by sorry
 example [Nontrivial R]       : (X * 1   : R[X]).leadingCoeff = 1 := by poly_rfl_leading_coeff_trying <:> poly_infer_try; simp
-example [NeZero (2 : R)]     : (X * C 2 : R[X]).leadingCoeff = 2 := by sorry
-example [NeZero (2 : R)]     : (X + X   : R[X]).leadingCoeff = 1 := by sorry
+--example [NeZero (2 : R)]     : (X * C 2 : R[X]).leadingCoeff = 2 := by sorry
+--example [NeZero (2 : R)]     : (X + X   : R[X]).leadingCoeff = 1 := by sorry
 example [Nontrivial R]       : (1 + X   : R[X]).leadingCoeff = 1 := by poly_rfl_leading_coeff_trying <:> poly_infer_try
-example [NeZero (2 : R)]     : (C 2 + X : R[X]).leadingCoeff = 1 := by sorry
+--example [NeZero (2 : R)]     : (C 2 + X : R[X]).leadingCoeff = 1 := by sorry
 example [Nontrivial R]       : (X + 1   : R[X]).leadingCoeff = 1 := by poly_rfl_leading_coeff_trying <:> poly_infer_try
-example [NeZero (2 : R)]     : (X + C 2 : R[X]).leadingCoeff = 1 := by sorry
+--example [NeZero (2 : R)]     : (X + C 2 : R[X]).leadingCoeff = 1 := by sorry
 
 end LeadingCoeff
 

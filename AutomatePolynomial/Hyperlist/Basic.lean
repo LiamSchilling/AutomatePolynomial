@@ -84,9 +84,11 @@ def size : Hyperlist α → ℕ
 | single _ => 1
 | list L => List.foldl (. + size .) 0 L + 1
 
+/-
 /-- Sub-hyperlists are smaller than their parent hyperlists -/
 theorem sub_size_le (L : List (Hyperlist α)) : ∀ H ∈ L, H.size < (list L).size := by
   sorry
+-/
 
 /-- Applies `f` to each element -/
 @[simp]
@@ -94,6 +96,7 @@ def map : (α → β) → Hyperlist α → Hyperlist β
 | f, single a => single (f a)
 | f, list L => list (List.map (map f) L)
 
+/-
 /-- Applies `f` to corresponding elements -/
 @[simp]
 def zipWith : (α → β → γ) → Hyperlist α → Hyperlist β → Hyperlist γ
@@ -112,7 +115,9 @@ decreasing_by
   any_goals apply sub_size_le; simp
   apply Nat.add_lt_add_of_le_of_lt; apply le_of_lt
   all_goals apply sub_size_le; assumption
+-/
 
+/-
 /-- Applies `f` to corresponding elements, using `a₀` and `b₀` for elements without matches -/
 @[simp]
 def zipWithPad : (α → β → γ) → α → β → Hyperlist α → Hyperlist β → Hyperlist γ
@@ -130,7 +135,9 @@ decreasing_by
   all_goals simp_wf
   any_goals apply sub_size_le; simp
   . sorry
+-/
 
+/-
 /-- Applies `f` to corresponding elements,
 merging according to dimension labels in strictly increasing `I1` and `I2`,
 using `a₀` and `b₀` for elements without matches,
@@ -170,5 +177,6 @@ def nodupsMerge_zipWithPad
     | list L1, list L2 =>
       list (List.zipWithPad
         (nodupsMerge_zipWithPad f a₀ b₀ I1' I2' . . cmp) (single a₀) (single b₀) L1 L2 )
+-/
 
 end Hyperlist
