@@ -8,23 +8,21 @@
 
 \usepackage{amssymb, amsthm, amsmath}
 \usepackage{hyperref}
-\usepackage[showmore, dep_graph, web]{blueprint}
+\usepackage[showmore, dep_graph, web, thms=theorem+proposition+lemma+corollary+definition+tactic]{blueprint}
 
 \input{macros/common}
 \input{macros/web}
 
-%\home{https://LiamSchilling.github.io/AutomatePolynomial}
-%\github{https://github.com/LiamSchilling/AutomatePolynomial}
-%\dochome{https://LiamSchilling.github.io/AutomatePolynomial/docs}
+\home{https://LiamSchilling.github.io/AutomatePolynomial}
+\github{https://github.com/LiamSchilling/AutomatePolynomial}
+\dochome{https://LiamSchilling.github.io/AutomatePolynomial/docs}
 
-\newif\ifprint
-\newif\ifweb
-\webtrue
-
-\title{AutomatePolynomial}
+\title{Automate Polynomial}
 \author{Liam Schilling}
 
 \begin{document}
 \maketitle
+\seca*{Abstract}
+\input{abstract}
 \input{content}
 \end{document}

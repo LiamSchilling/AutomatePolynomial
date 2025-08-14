@@ -215,7 +215,7 @@ theorem reps_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R}
 
 theorem normal_normalize [DecidablePred (Eq 0 : R → Prop)] {L : List R} :
     normal (normalize L) := by
-  simp [List.dropWhile_append]
+  simp
   split <;> rename_i c' L' h; trivial; revert h
   induction L.reverse with
   | nil => simp
@@ -333,8 +333,8 @@ theorem expand_eq
 
 syntax "poly_unfold_expand" : tactic
 macro_rules
-  | `(tactic| poly_unfold_expand) =>
-    `(tactic| repeat unfold Polynomial.CoeffList.expand)
+| `(tactic| poly_unfold_expand) =>
+  `(tactic| repeat unfold Polynomial.CoeffList.expand)
 
 end Semiring
 

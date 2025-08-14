@@ -1,0 +1,144 @@
+@inproceedings{RingOfIntegers2025,
+      author = {Baanen, Anne and Chavarri Villarello, Alain and Dahmen, Sander R.},
+      title = {Certifying Rings of Integers in Number Fields},
+      year = {2025},
+      isbn = {9798400713477},
+      publisher = {Association for Computing Machinery},
+      address = {New York, NY, USA},
+      url = {https://doi.org/10.1145/3703595.3705874},
+      doi = {10.1145/3703595.3705874},
+      abstract = {Number fields and their rings of integers, which generalize the rational numbers and the integers, are foundational objects in number theory.   There are several computer algebra systems and databases concerned with the computational aspects of these.  In particular, computing the ring of integers of a given number field is one of the main tasks of computational algebraic number theory.   In this paper, we describe a formalization in Lean 4 for certifying such computations.   In order to accomplish this, we developed several data types amenable to computation.  Moreover, many other underlying mathematical concepts and results had to be formalized, most of which are also of independent interest.  These include resultants and discriminants, as well as methods for proving irreducibility of univariate polynomials over finite fields and over the rational numbers.  To illustrate the feasibility of our strategy, we formally verified entries from the Number fields section of the L-functions and modular forms database (LMFDB).  These concern, for several number fields, the explicitly given integral basis of the ring of integers and the discriminant.  To accomplish this, we wrote SageMath code that computes the corresponding certificates and outputs a Lean proof of the statement to be verified.},
+      booktitle = {Proceedings of the 14th ACM SIGPLAN International Conference on Certified Programs and Proofs},
+      pages = {50–66},
+      numpages = {17},
+      keywords = {Lean, Mathlib, algebraic number theory, formalized mathematics, tactics},
+      location = {Denver, CO, USA},
+      series = {CPP '25}
+}
+
+@misc{ComputationalPolynomialsFinsupps,
+      title = {Computation models for polynomials and finitely supported functions},
+      author = {Eric Wieser},
+      year = {2023},
+      publisher = {GitHub},
+      journal = {Mathlib4 Wiki},
+      howpublished = {\url{https://github.com/leanprover-community/mathlib4/wiki/Computation-models-for-polynomials-and-finitely-supported-functions}},
+      revision = {05ba40e},
+}
+
+@misc{Polyrith,
+      title = {polyrith Tactic},
+      author = {Dhruv Bhatia and Eric Wieser and Mario Carneiro and Thomas Zhu},
+      year = {2022},
+      publisher = {GitHub},
+      journal = {Mathlib4 Documentation},
+      howpublished = {\url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Tactic/Polyrith.html}},
+      commit = {c80f6853b2eaa9cdee398468c0d0b81376eef970},
+}
+
+@misc{MasonStothers2024,
+      title={Formalizing Mason-Stothers Theorem and its Corollaries in Lean 4}, 
+      author={Jineon Baek and Seewoo Lee},
+      year={2024},
+      eprint={2408.15180},
+      archivePrefix={arXiv},
+      primaryClass={cs.LO},
+      url={https://arxiv.org/abs/2408.15180}, 
+}
+
+@misc{ComputationalPolynomials2024,
+      title={First steps towards Computational Polynomials in Lean}, 
+      author={James Harold Davenport},
+      year={2024},
+      eprint={2408.04564},
+      archivePrefix={arXiv},
+      primaryClass={cs.SC},
+      url={https://arxiv.org/abs/2408.04564}, 
+}
+
+@inproceedings{Aesop2023,
+      author = {Limperg, Jannis and From, Asta Halkj\ae{}r},
+      title = {Aesop: White-Box Best-First Proof Search for Lean},
+      year = {2023},
+      isbn = {9798400700262},
+      publisher = {Association for Computing Machinery},
+      address = {New York, NY, USA},
+      url = {https://doi.org/10.1145/3573105.3575671},
+      doi = {10.1145/3573105.3575671},
+      abstract = {We present Aesop, a proof search tactic for the Lean 4 interactive  
+      theorem prover. Aesop performs a tree-based search over a user-specified  
+      set of proof rules. It supports safe and unsafe rules and uses a best-first  
+      search strategy with customisable prioritisation. Aesop also allows users  
+      to register custom normalisation rules and integrates Lean's simplifier to  
+      support equational reasoning. Many details of Aesop's search procedure are  
+      designed to make it a white-box proof automation tactic, meaning that users  
+      should be able to easily predict how their rules will be applied, and thus how  
+      powerful and fast their Aesop invocations will be.  
+
+      Since we use a best-first search strategy, it is not obvious how to handle  
+      metavariables which appear in multiple goals. The most common strategy for  
+      dealing with metavariables relies on backtracking and is therefore not  
+      suitable for best-first search. We give an algorithm which addresses this  
+      issue. The algorithm works with any search strategy, is independent of the  
+      underlying logic and makes few assumptions about how rules interact with  
+      metavariables. We conjecture that with a fair search strategy, the algorithm  
+      is as complete as the given set of rules allows.},
+      booktitle = {Proceedings of the 12th ACM SIGPLAN International Conference on Certified Programs and Proofs},
+      pages = {253–266},
+      numpages = {14},
+      keywords = {type theory, tactic, proof search, interactive theorem proving, deductive verification, Lean},
+      location = {Boston, MA, USA},
+      series = {CPP 2023}
+}
+
+@misc{MasonStothers2018,
+      title = {A Formally Verified Proof of the Mason-Stothers Theorem in Lean},
+      author = {Jens Wagemaker},
+      year = {2018}
+}
+
+@misc{Buchbergers2019,
+      title = {An Implementation of Buchberger’s Algorithm in Lean},
+      author = {Markos Dermitzakis},
+      year = {2019}
+}
+
+@misc{UnivariateSolutions2022,
+      title={The solutions to single-variable polynomials, implemented and verified in Lean}, 
+      author={Nicholas Dyson and Benedikt Ahrens and Jacopo Emmenegger},
+      year={2022},
+      eprint={2201.00255},
+      archivePrefix={arXiv},
+      primaryClass={cs.LO},
+      url={https://arxiv.org/abs/2201.00255}, 
+}
+
+@misc{LeanCopilot2025,
+      title={Lean Copilot: Large Language Models as Copilots for Theorem Proving in Lean}, 
+      author={Peiyang Song and Kaiyu Yang and Anima Anandkumar},
+      year={2025},
+      eprint={2404.12534},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2404.12534}, 
+}
+
+@misc{SmallScaleReflection2024,
+      title={Small Scale Reflection for the Working Lean User}, 
+      author={Vladimir Gladshtein and George Pîrlea and Ilya Sergey},
+      year={2024},
+      eprint={2403.12733},
+      archivePrefix={arXiv},
+      primaryClass={cs.PL},
+      url={https://arxiv.org/abs/2403.12733}, 
+}
+
+@inbook{TypeClasses,
+      chapter={Type Classes},
+      title={Theorem Proving in Lean 4},
+      author={Jeremy Avigad and Leonardo de Moura and Soonho Kong and Sebastian Ullrich},
+      year={2021},
+      publisher={GitHub},
+      journal={Mathlib4 Wiki},
+      howpublished={\url={https://leanprover.github.io/theorem_proving_in_lean4/Type-Classes/#type-classes}},
+}
