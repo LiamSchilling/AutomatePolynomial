@@ -13,7 +13,7 @@
       numpages = {17},
       keywords = {Lean, Mathlib, algebraic number theory, formalized mathematics, tactics},
       location = {Denver, CO, USA},
-      series = {CPP '25}
+      series = {CPP 2025}
 }
 
 @misc{ComputationalPolynomialsFinsupps,
@@ -113,14 +113,16 @@
       url={https://arxiv.org/abs/2201.00255}, 
 }
 
-@misc{LeanCopilot2025,
+@inproceedings{LeanCopilot2025,
       title={Lean Copilot: Large Language Models as Copilots for Theorem Proving in Lean}, 
       author={Peiyang Song and Kaiyu Yang and Anima Anandkumar},
       year={2025},
-      eprint={2404.12534},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2404.12534}, 
+      url={https://doi.org/10.48550/arXiv.2404.12534},
+      doi={10.48550/arXiv.2404.12534},
+      abstract={Neural theorem proving combines large language models (LLMs) with proof assistants such as Lean, where the correctness of formal proofs can be rigorously verified, leaving no room for hallucination. With existing neural theorem provers pretrained on a fixed collection of data and offering valuable suggestions at times, it is challenging for them to continually prove novel theorems in a fully autonomous mode, where human insights may be critical. In this paper, we explore LLMs as copilots that assist humans in proving theorems. We introduce Lean Copilot, a general framework for running LLM inference natively in Lean. It enables programmers to build various LLM-based proof automation tools that integrate seamlessly into the workflow of Lean users. Lean users can use our pretrained models or bring their own ones that run either locally (with or without GPUs) or on the cloud. Using Lean Copilot, we build LLM-based tools that suggest proof steps, complete proof goals, and select relevant premises. Experimental results on the Mathematics in Lean textbook demonstrate the effectiveness of our method compared to existing rule-based proof automation in Lean (aesop). When assisting humans, Lean Copilot requires only 2.08 manually-entered proof steps on average (3.86 required by aesop); when automating the theorem proving process, Lean Copilot automates 74.2% proof steps on average, 85% better than aesop (40.1%). We open source all code and artifacts under a permissive MIT license to facilitate further research.},
+      numpages={26},
+      location={Philadelphia, PA, USA},
+      series={NeuS 2025}
 }
 
 @misc{SmallScaleReflection2024,
@@ -137,8 +139,15 @@
       chapter={Type Classes},
       title={Theorem Proving in Lean 4},
       author={Jeremy Avigad and Leonardo de Moura and Soonho Kong and Sebastian Ullrich},
-      year={2021},
       publisher={GitHub},
       journal={Mathlib4 Wiki},
       howpublished={\url={https://leanprover.github.io/theorem_proving_in_lean4/Type-Classes/#type-classes}},
+}
+
+@inbook{Grind,
+      chapter={The grind tactic},
+      title={The Lean Language Reference},
+      publisher={GitHub},
+      journal={Mathlib4 Wiki},
+      howpublished={\url={https://lean-lang.org/doc/reference/latest/The--grind--tactic/#grind-tactic}},
 }

@@ -34,5 +34,10 @@
 
 \newtheorem{tactic}{Tactic}[section]
 
+\setmonofont{Consolas}
+
 \usepackage{titlesec}
 \titleformat{\subsubsection}[runin]{\itshape}{\thesubsubsection}{1em}{}[.]
+
+\newcommand{\leaninline}[1]{{\small \texttt{#1}}}
+\newcommand{\tacticinline}[1]{\textcolor{tacticcolor}{\small \texttt{#1}}}

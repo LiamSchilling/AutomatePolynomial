@@ -14,8 +14,6 @@
 \usepackage{listings}
 \usepackage{color}
 
-\newcommand{\tacticinline}[1]{\color{tacticcolor}\small{\texttt{#1}}}
-
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -33,8 +31,10 @@
 \def\lstlanguagefiles{lstlean.tex}
 \lstset{language=lean}
 
-\setmonofont{Consolas}
-
 \bibliographystyle{unsrt}
 
 \graphicspath{ {images/} }
+
+\newcommand{\degree}{\mathtt{degree}}
+\newcommand{\leading}{\mathtt{leadingCoefficient}}
+\newcommand{\coeff}{\mathtt{nthCoefficient}}

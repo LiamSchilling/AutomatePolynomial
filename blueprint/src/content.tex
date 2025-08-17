@@ -18,30 +18,32 @@ The blueprint is organized as follows: The rest of Section~\ref{sec:intro} exami
 
 Previous work outlines a number of approaches to proof automation in Lean 4, each with different advantages and preferred applications. The Ring of Integers project \cite{RingOfIntegers2025} covers proof automation methods in Lean extensively and may be referenced for a more technical address of the topic. This blueprint will introduce and evaluate proof automation strategies in previous work as it relates to our approach. We broadly refer to these strategies as \emph{proof by reflection}.
 
-One proof-by-reflection paradigm is white-box automation \cite{Aesop2023}, in which the automation procedure is transparent and simple enough for users to trace and predict how an application will deal with their goals. Although these solutions tend to be narrow-application in terms of the goals they can deal with, they are highly extensible to different contexts since the user can understand and customize them. Search tactics such as aesop \cite{Aesop2023} and reflection models such as LeanSSR \cite{SmallScaleReflection2024} are common examples of such automation. While alternative proof-by-reflection paradigms such as LLMs are more general-application, they tend to be more brittle to changes in context and difficult to debug due to their complexity. There have even been recent efforts to make these solutions more usable by integrating them as assistants in the interactive-proving process, using them to resolve subgoals instead of relying on them for complex theorems. Lean Copilot \cite{LeanCopilot2025}, for instance, integrates their LLM implementation with aesop’s search, resulting in a white-box solution with some of the general-application benefits of LLM automation.
+One proof-by-reflection paradigm is white-box automation \cite{Aesop2023}, in which the automation procedure is transparent and simple enough for users to trace and predict how an application will deal with their goals. Although these solutions tend to be narrow-application in terms of the goals they can deal with, they are highly extensible to different contexts since the user can understand and customize them. Search tactics such as \tacticinline{aesop} \cite{Aesop2023} and reflection models such as LeanSSR \cite{SmallScaleReflection2024} are common examples of such automation. While alternative proof-by-reflection paradigms such as LLMs are more general-application, they tend to be more brittle to changes in context and difficult to debug due to their complexity. There have even been recent efforts to make these solutions more usable by integrating them as assistants in the interactive-proving process, using them to resolve subgoals instead of relying on them for complex theorems. Lean Copilot \cite{LeanCopilot2025}, for instance, integrates their LLM implementation with aesop’s search, resulting in a white-box solution with some of the general-application benefits of LLM automation.
 
-Popular implementations also tend to be native to Lean since they are easier to use, entail less dependencies, and enjoy the benefits of Lean's powerful tactics and metaprogramming. For instance, Lean Copilot \cite{LeanCopilot2025} implements their Lean declarations in C++, to which Lean compiles directly. Moreover, LeanSSR \cite{SmallScaleReflection2024} emphasizes how Lean is a great candidate for implementation of their reflection model because of its powerful metaprogramming support. LeanSSR also discusses how Lean's flexible tactics for goal manipulation result in convenient ``last-mile automation'' strategies, where the user only needs to manipulate the goal to a point where it can be automatically resolved by some form of reduction. For example, the built-in tactics \lstinline{rfl} and \lstinline{simp} automate a variety of goals by reducing them according to simple rules. Our native approach makes generous use of these last-mile automation strategies. Overall, it seems that native, white-box automation is a leading contender for Lean.
+Popular implementations also tend to be native to Lean since they are easier to use, entail less dependencies, and enjoy the benefits of Lean's powerful tactics and metaprogramming. For instance, Lean Copilot \cite{LeanCopilot2025} implements their Lean declarations in C++, to which Lean compiles directly. Moreover, LeanSSR \cite{SmallScaleReflection2024} emphasizes how Lean is a great candidate for implementation of their reflection model because of its powerful metaprogramming support. LeanSSR also discusses how Lean's flexible tactics for goal manipulation result in convenient ``last-mile automation'' strategies, where the user only needs to manipulate the goal to a point where it can be automatically resolved by some form of reduction. For example, the built-in tactics \tacticinline{rfl} and \tacticinline{simp} automate a variety of goals by reducing them according to simple rules. Our native approach makes generous use of these last-mile automation strategies. Overall, it seems that native, white-box automation is a leading contender for Lean.
 
 Type-class inference, which our project employs to construct computable representations, seems unexplored as a search method compared to metaprogramming and search tactics. We find in our project that it greatly simplifies resolving goals that can be split into similar subgoals without much additional verification at each step. However, it requires additional help from tactics when verification beyond the scope of the procedure is necessary at any step (see Section~\ref{sec:sensitive}).
 
 \secb{Polynomials in Lean}
 
-Previous work with these polynomials highlights how a lack of computable representations can limit the impact of a formalization. As described by Wieser \cite{ComputationalPolynomialsFinsupps}, polynomials in Mathlib are non-computable because they are implemented using the \lstinline{Finsupp} type for finitely supported functions, whose underlying support set may not have decidable membership. An early Lean 3 formalization \cite{MasonStothers2018} aimed to prove the Mason Stothers Theorem. The project achieved what it set out to do, though it first had to build up the necessary background in number theory and polynomials. A later project \cite{MasonStothers2024} which achieved the same formalization using Lean 4’s Mathlib noted that the previous project’s non-reliance on established machinery limited its application and reusability. This is because its results cannot be immediately related to the standard Mathlib definitions used in other projects.
+Previous work with polynomials in Lean highlights how a lack of computable representations can limit the impact of a formalization. As described by Wieser \cite{ComputationalPolynomialsFinsupps}, polynomials in Mathlib are non-computable because they are implemented using the \leaninline{Finsupp} type for finitely supported functions, whose underlying support set may not have decidable membership. An early Lean 3 formalization \cite{MasonStothers2018} aimed to prove the Mason Stothers Theorem. The project achieved this goals, though it first had to build up the necessary background in number theory and polynomials. A later project \cite{MasonStothers2024} which achieved the same formalization using Lean 4’s Mathlib noted that the previous project’s rejection of established machinery limited its application and reusability. This is because its results cannot be easily related to the standard Mathlib definitions used in other projects.
 
-Some projects take advantage of the computational benefits of machine formalization, implementing algorithms on polynomials in Lean. One project implemented Buchberger’s Algorithm \cite{Buchbergers2019} but noted that Mathlib’s non-computable polynomial representation made it ineffective for their application. They implemented their own polynomials for use in their implementation, limiting once again its reusability. Another project \cite{UnivariateSolutions2022} implemented algorithms for finding solutions to univariate polynomials, but built their mathematical machinery---all the way from natural numbers---from scratch. Although an impressive look into what it takes to formalize such mathematical background, this definitional separation limits the project in the same ways as the previous one.
+Some projects take advantage of the computational benefits of machine formalization, implementing algorithms on polynomials in Lean. One project implemented Buchberger’s Algorithm \cite{Buchbergers2019} but noted that Mathlib’s non-computable polynomial representation made it ineffective for their application. The authors implemented their own polynomials for use in their implementation, limiting its reusability similarly to the projects dealing with the Mason Stothers Theorem. Another project \cite{UnivariateSolutions2022} implemented algorithms for finding solutions to univariate polynomials, but built their mathematical machinery---all the way from natural numbers---from scratch. Although an impressive look into what it takes to formalize such mathematical background, this definitional separation limits the project in the same ways as the previous one.
 
-Recent work focuses on more computable representations and automations for polynomials in Lean. Davenport \cite{ComputationalPolynomials2024} outlines the design decisions towards implementing such a representation and some operations on it. However, he does not detail any proof of correctness for those operations, and instead discusses verification using SageMath. Another approach to automation is Wieser’s \lstinline{polyrith} tactic \cite{Polyrith}, which uses SageMath to compute necessary parameters for resolving a goal with Mathlib’s \lstinline{linear_combination} tactic. It is a highly effective white-box method for polynomials over fields. In both these methods, proof automation is non-native. Our approach introduces a computable representation and correctness-verified operations all native to Lean. Furthermore, the representations do not require polynomials defined over fields, only commutative semirings in the most specific cases, making the solution more general than polyrith in this aspect.
+Recent work focuses on more computable representations and automations for polynomials in Lean. Davenport \cite{ComputationalPolynomials2024} outlines the design decisions towards implementing such a representation and some operations on it. However, he does not detail any proof of correctness for those operations, and instead discusses verification using SageMath. Another approach to automation is Wieser’s \tacticinline{polyrith} tactic \cite{Polyrith}, which uses SageMath to compute necessary parameters for resolving a goal with Mathlib’s \tacticinline{linear\_combination} tactic. It is a highly effective white-box method for polynomials over fields. In both these methods, proof automation is non-native. Our approach introduces a computable representation and correctness-verified operations all native to Lean. Furthermore, the representations do not require polynomials defined over fields, only commutative semirings in the most specific cases, making the solution more general than polyrith in this aspect.
 
 The Ring of Integers project \cite{RingOfIntegers2025} briefly discusses construction of computable representations based on expressions in the current goal as a proof automation method. They also discuss their list-based implementation of a computable representation for polynomials which is similar to our list-based implementation. However, they explain as a limitation that their implementation does not provide such a way to automatically construct this representation. This type of automated construction is central to our approach and is achieved using the unexplored method of type-class inference (recall Section~\ref{sec:automation}). For these reasons, we consider this aspect the most novel contribution of our work.
+
+It should be noted that the powerful \tacticinline{grind} tactic \cite{Grind} for automated reasoning over finite algebras became available in Lean during work on this project. For its Gröbner basis computations, the system ships with a computable representation of polynomials implemented by the \leaninline{Poly} type (see \href{https://github.com/leanprover/lean4/blob/master/src/Init/Grind/Ring/Poly.lean}{\texttt{Poly.lean}}) and automated construction methods for it. It is still unclear how those automated construction methods compare to those used in our project, though future work may explore this question as well as how adoption of the convenient \leaninline{Poly} type could improve our system.
 
 \seca{Reflection by Inference}
 \label{sec:reflection}
 
 \secb{Representation Inference}
 
-Lean's type-class inference is a powerful tool for automatically constructing instances of a parameterized type. Our approach to proof-by-reflection, which we will call \emph{reflection by inference}, employs type-class inference to construct computable representations of target properties. First, we will briefly discuss type-class inference. Instance declarations are the blueprint for this process; each declaration states the parameter of the type it instantiates, admits any type class instances it requires as input, and specifies how to construct the target instance from these inputs. As displayed in Figure~\ref{fig:inference}, type-class inference is a depth-first search which, at each step, checks all instance declarations that match the current goal. For more details on type-class inference, see \cite{TypeClasses}.
+Lean's type-class inference is a powerful tool for automatically constructing instances of a parameterized type. Our approach to proof-by-reflection, which we will call \emph{reflection by inference}, employs type-class inference to construct computable representations of target properties. First, we will briefly discuss type-class inference. Instance declarations are the blueprint for this process; each declaration states the parameter of the type it instantiates, admits any type class instances it requires as input, and specifies how to construct the target instance from these inputs. As displayed in Figure~\ref{fig:inference}, type-class inference is a depth-first search which, at each step, checks all instance declarations that match the current goal. For more details on type-class inference, consult the \textit{Theorem Proving in Lean 4} handbook \cite{TypeClasses}.
 
-Lean's type-class inference is central to our reflection model and we will refer to it as the \emph{inference procedure}. In our case, the types we will construct are of computable representations of the target properties parameterized over polynomials. We will refer to these computable representions as \emph{representations} and the type classes that contain instances of them as \emph{reflection classes}. As addressed in Figure~\ref{fig:model}, reflection classes are generic to the representations they contain. It follows that the inference procedure is generic to computable representations of the target properties. We will refer to instance declarations for reflection classes as \emph{inference rules}. Once the reflection classes and inference rules are declared, we may implement \emph{tactics} that perform the inference procedure to resolve goals. These tactics rewrite the target property as the constructed computable representation so that the goal can be resolved by last-mile automation tactics. Recall that \cite{SmallScaleReflection2024} discusses last-mile automation.
+Lean's type-class inference is central to our reflection model and we will refer to it as the \emph{inference procedure}. In our case, the types we will construct are of computable representations of the target properties parameterized over polynomials. We will refer to these computable representions as \emph{representations} and the type classes that contain instances of them as \emph{reflection classes}. As addressed in Figure~\ref{fig:model}, reflection classes are generic to the representations they contain. It follows that the inference procedure is generic to computable representations of the target properties. We will refer to instance declarations for reflection classes as \emph{inference rules}. Once the reflection classes and inference rules are declared, we may implement \emph{tactics} that perform the inference procedure to resolve goals. These tactics rewrite the target property as the constructed computable representation so that the goal can be resolved by last-mile automation tactics. Recall that the LeanSSR project \cite{SmallScaleReflection2024} discusses last-mile automation.
 
 \secb{Reflection Model}
 
@@ -64,13 +66,13 @@ The reflection-by-inference model in Figure~\ref{fig:model} guides our implement
 \secb{Sensitive Inference Procedure}
 \label{sec:sensitive}
 
-Although the inference procedure is effective for target properties with inference rules that require only the simple input instances without extra conditions, it is limited for properties that require extra assumptions at each step. For example, exact degrees and leading coefficients require that leading terms do not cancel at each \lstinline{+}, \lstinline{*}, or \lstinline{^} step. To address this issue, we implement the \emph{sensitive inference procedure} which is invoked by the Tactic~\ref{tac:infer_instance_trying}.
+Although the inference procedure is effective for target properties with inference rules that require only the simple input instances without extra conditions, it is limited for properties that require extra assumptions at each step. For example, inference for exact degrees and leading coefficients requires that leading terms do not cancel at each \leaninline{+}, \leaninline{*}, or \leaninline{\^{}} step. To address this issue, we implement the \emph{sensitive inference procedure} which is invoked by Tactic~\ref{tac:infer_instance_trying}.
 
 \begin{tactic}[\tacticinline{infer\_instance\_trying}]
 \label{tac:infer_instance_trying}
 \lean{synthInstanceTrying, tacticInfer_instance_trying<:>_}
 \leanok
-Performs a depth-first search which, at each step, applies a provided helper tactic \lstinline{t} then checks all instance declarations that match the current goal. Unlike Lean's type-class inference, this procedure supports instance declarations that require assumptions that cannot be resolved by type-class instances, handling them with the helper tactic instead. The syntax is \lstinline{infer_instance_trying <:> t}.
+Performs a depth-first search which, at each step, applies a provided helper tactic \tacticinline{t} then checks all instance declarations that match the current goal. Unlike Lean's type-class inference, this procedure supports instance declarations that require assumptions that cannot be resolved by type-class instances, handling them with the helper tactic instead. The syntax is \tacticinline{infer\_instance\_trying}\leaninline{ <:> }\tacticinline{t}.
 \begin{lstlisting}
 open Nat
 
@@ -111,7 +113,7 @@ Utility tactics perform useful rewriting and last-mile simplification steps. The
 \label{tac:poly_rfl_rw}
 \lean{tacticPoly_rfl_rw}
 \leanok
-Performs trivial rewrites to transform polynomials into the form expected by the inference procedure. For instance, \lstinline{0} is rewritten as \lstinline{C 0}.
+Performs trivial rewrites to transform polynomials into the form expected by the inference procedure. For instance, \leaninline{0} is rewritten as \leaninline{C 0}.
 \end{tactic}
 
 \begin{tactic}[\tacticinline{poly\_rfl\_dsimp}]
@@ -126,7 +128,7 @@ Simplifies the expression resulting from the inference procedure so that the com
 \lean{tacticPoly_rfl_with<:>_}
 \leanok
 \uses{tac:poly_rfl_rw, tac:poly_rfl_dsimp}
-Frames a reflection tactic \lstinline{t} with rewriting and last-mile simplification steps from Tactic~\ref{tac:poly_rfl_rw} and Tactic~\ref{tac:poly_rfl_dsimp}. The syntax is \lstinline{poly_rfl_with <:> t}.
+Frames a reflection tactic \tacticinline{t} with rewriting and last-mile simplification steps from Tactic~\ref{tac:poly_rfl_rw} and Tactic~\ref{tac:poly_rfl_dsimp}. The syntax is \tacticinline{poly\_rfl\_with}\leaninline{ <:> }\tacticinline{t}.
 \end{tactic}
 
 \begin{tactic}[\tacticinline{poly\_infer\_try}]
@@ -139,7 +141,7 @@ For use as a helper tactic in the sensitive inference procedure (see Tactic~\ref
 
 \secc{Reflection tactics}
 
-Reflection tactics perform the inference procedure to resolve target goals by transforming them so that they can be resolved with last-mile automation tactics such as \lstinline{trivial}, \lstinline{simp}, and \lstinline{norm_num}. The code samples are adapted from \href{https://github.com/LiamSchilling/AutomatePolynomial/tree/master/AutomatePolynomial/Demo/Polynomial.lean}{\texttt{Demo/Polynomial.lean}} and rely on the following preamble.
+Reflection tactics perform the inference procedure to resolve target goals by transforming them so that they can be resolved with last-mile automation tactics such as \tacticinline{trivial}, \tacticinline{simp}, and \tacticinline{norm\_num}. The code samples are adapted from \href{https://github.com/LiamSchilling/AutomatePolynomial/tree/master/AutomatePolynomial/Demo/Polynomial.lean}{\texttt{Demo/Polynomial.lean}} and rely on the following preamble.
 
 \begin{lstlisting}
 import AutomatePolynomial.Reflection.Polynomial.Basic
@@ -151,7 +153,7 @@ open Polynomial Rfl
 \lean{tacticPoly_rfl_degree_le}
 \leanok
 \uses{tac:poly_rfl_with}
-Resolves goals of the form $\mathtt{degree}(p) \leq n$ for univariate polynomials $p$ and some $n$ which is either a natural number or the bottom member $\bot$.
+Resolves goals of the form $\degree(p) \leq n$ for univariate polynomials $p$ and some $n$ which is either a natural number or the bottom member $\bot$.
 \begin{lstlisting}
 section DegreeLe
 variable [Semiring R]
@@ -164,14 +166,14 @@ end DegreeLe
 \end{lstlisting}
 \end{tactic}
 
-Since the following tactics deal with properties that depend on whether leading terms cancel---degrees and leading coefficients---they will rely on the sensitive inference procedure (see Section~\ref{sec:sensitive}) in cases where the polynomial contains recursive cases such as \lstinline{+}, \lstinline{*}, or \lstinline{^} (disregarding \lstinline{X ^ n} which is handled separately). Tactics with the suffix \lstinline{_trying} perform the sensitive inference procedure to handle these cases. Alternatively, the sensitive inference procedure may be avoided by instead infering the coefficients of the polynomial and then deriving the target property from that. Tactics with the suffix \lstinline{_of_coeffs} use this alternative when provided the the target representation of the coefficients, such as \lstinline{CoeffsList}.
+Since the following tactics deal with properties that depend on whether leading terms cancel---degrees and leading coefficients---they will rely on the sensitive inference procedure (see Section~\ref{sec:sensitive}) in cases where the polynomial contains recursive cases such as \leaninline{+}, \leaninline{*}, or \leaninline{\^{}} (disregarding \leaninline{X \^{} n} which is handled separately). Tactics with the suffix \tacticinline{\_trying} perform the sensitive inference procedure to handle these cases. Alternatively, the sensitive inference procedure may be avoided by instead infering the coefficients of the polynomial and then deriving the target property from that. Tactics with the suffix \tacticinline{\_of\_coeffs} use this alternative when provided the the target representation of the coefficients, such as \leaninline{CoeffsList}.
 
 \begin{tactic}[\tacticinline{poly\_rfl\_degree\_eq}]
 \label{tac:poly_rfl_degree_eq}
 \lean{tacticPoly_rfl_degree_eq, tacticPoly_rfl_degree_eq_trying<:>_, tacticPoly_rfl_degree_eq_of_coeffsVIA_}
 \leanok
 \uses{tac:poly_rfl_with}
-Resolves goals of the form $\mathtt{degree}(p) = n$ for univariate polynomials $p$ and some $n$ which is either a natural number or the bottom member $\bot$. In any case where we want $\mathtt{degree}(p) \neq \bot$, we must admit that the the semiring is nontrivial, as in section \lstinline{DegreeEqNontrivial}.
+Resolves goals of the form $\degree(p) = n$ for univariate polynomials $p$ and some $n$ which is either a natural number or the bottom member $\bot$. In any case where we want $\degree(p) \neq \bot$, we must admit that the the semiring is nontrivial, as in section \leaninline{DegreeEqNontrivial}.
 \begin{lstlisting}
 section DegreeEq
 variable [Semiring R]
@@ -197,7 +199,7 @@ end DegreeEqOfCoeffs
 \lean{tacticPoly_rfl_leading_coeff, tacticPoly_rfl_leading_coeff_trying<:>_, tacticPoly_rfl_leading_coeff_of_coeffsVIA_}
 \leanok
 \uses{tac:poly_rfl_with}
-Resolves goals of the form $\mathtt{leadingCoefficient}(p) = c$ for univariate polynomials $p$ and members of the relevant semiring $c$. When the definition of $p$ contains recursive cases such as \lstinline{+}, \lstinline{*}, or \lstinline{^} (disregarding \lstinline{X ^ n} which is handled separately), we must admit that the semiring is nontrivial, as in section \lstinline{LeadingCoeffNontrivial}.
+Resolves goals of the form $\leading(p) = c$ for univariate polynomials $p$ and members of the relevant semiring $c$. When the definition of $p$ contains recursive cases such as \leaninline{+}, \leaninline{*}, or \leaninline{\^{}} (disregarding \leaninline{X \^{} n} which is handled separately), we must admit that the semiring is nontrivial, as in section \leaninline{LeadingCoeffNontrivial}.
 \begin{lstlisting}
 section LeadingCoeff
 variable [Semiring R]
@@ -218,14 +220,14 @@ end LeadingCoeffEqOfCoeffs
 \end{lstlisting}
 \end{tactic}
 
-The remaining tactics are generic to the representation of the target property and require the user to provide the target representation, such as \lstinline{CoeffsList} or \lstinline{EvalArrow}.
+The remaining tactics are generic to the representation of the target property and require the user to provide the target representation, such as \leaninline{CoeffsList} or \leaninline{EvalArrow}.
 
 \begin{tactic}[\tacticinline{poly\_rfl\_coeff}]
 \label{tac:poly_rfl_coeff}
 \lean{tacticPoly_rfl_coeffVIA_}
 \leanok
 \uses{tac:poly_rfl_with}
-Resolves goals of the form $\mathtt{nthCoefficient}_n(p) = c$ for univariate polynomials $p$, natural numbers $n$, and members of the relevant semiring $c$. Note that we admit that the semiring is commutative.
+Resolves goals of the form $\coeff_n(p) = c$ for univariate polynomials $p$, natural numbers $n$, and members of the relevant semiring $c$. Note that we admit that the semiring is commutative.
 \begin{lstlisting}
 section Coeffs
 variable [CommSemiring R]
@@ -275,7 +277,7 @@ end Expand
 \seca{Multivariate System}
 \label{sec:multivariate}
 
-Current work focuses on generalizing the capabilities of the system for univariate polynomials to a system for multivariate polynomials. Progress on this system is available in the \href{https://github.com/LiamSchilling/AutomatePolynomial/tree/dev}{\texttt{dev}} branch.
+Current work focuses on generalizing the capabilities of the system for univariate polynomials to a system for multivariate polynomials. Progress on this system is available in the \href{https://github.com/LiamSchilling/AutomatePolynomial/tree/feature/mvpoly}{\texttt{feature/mvpoly}} branch.
 
 \newpage
 \bibliography{refs}

@@ -1,68 +1,62 @@
-# Automate Polynomial
+# Automate Polynomial: An Experiment in Reflection for Polynomials
 
-We aim to design one model
-for proof-by-reflection systems in Lean 4
-and follow this model to automate proof
-of degrees, coefficients, evaluations, and expansions
-for univariate and multivariate polynomials.
+Polynomials are crucial to cryptographic protocols for their error-checking applications. Proof assistants like Lean 4 enable machine-verified implementations of those protocols, yielding more correct and secure systems. While those implementations demand an efficient way to prove properties of polynomials in Lean, representations of polynomials in Lean’s mathematics library are not directly computable, making simple results tedious to prove. To address this issue, we design and implement a general proof-by-reflection model in Lean, reducing mathematical problems to decisions on computable representations. The resulting systems automate proof of degrees, coefficients, evaluations, and expansions for univariate and multivariate polynomials in various contexts.
 
-## Approach
+## The Blueprint
 
-We employ type class inference to construct representations
-of properties of polynomials with witnesses of their correctness
-from the bottom up.
-To handle representations requiring more strict assumptions
-(degree equality for example, which requires that leading terms do not cancel)
-we implemented the tactic `infer_instance_trying`
-which tries a helper tactic on any subgoal where Lean’s inference fails.
+This document will briefly demonstrate the automation capabilities of the our system's tactics. For a more thorough discussion of previous work, our approach, and how to extend the systems in this project, visit the project's [blueprint](https://liamschilling.github.io/AutomatePolynomial/).
 
-## Model
+## Demonstrations
 
-We specify three levels of abstraction.
+The following code samples are adapted from [Demo/Polynomial.lean](https://github.com/LiamSchilling/AutomatePolynomial/tree/master/AutomatePolynomial/Demo/Polynomial.lean) and rely on the following preamble.
 
-* A **Signature** declares necessary *Inference Rules*,
-which yield instances for a generic type class.
-* The **Interface** extends multiple signatures
-with a specified *Reflection Class* asserting the target property.
-*Tactics* to automate proof of goals can be implemented
-for generic representations.
-* The **Implementation** instantiates an interface
-with a specified *Representation*
-and implements rules declared in the signatures.
+```
+import AutomatePolynomial.Reflection.Polynomial.Basic
+open Polynomial Rfl
+```
 
-## Reflection
+`poly_rfl_degree_le` resolves greedy upper bounds on polynomial degree.
 
-We identified five properties relevant
-to univariate and multivariate polynomials
-(listed reflection classes are for univariate polynomials).
+```
+section DegreeLe
+variable [Semiring R]
+example : (0     : R[X]).degree ≤ ⊥ := by poly_rfl_degree_le; trivial
+example : (1     : R[X]).degree ≤ 0 := by poly_rfl_degree_le; trivial
+example : (X     : R[X]).degree ≤ 1 := by poly_rfl_degree_le; trivial
+example : (X ^ 2 : R[X]).degree ≤ 2 := by poly_rfl_degree_le; trivial
+example : (X + 1 : R[X]).degree ≤ 1 := by poly_rfl_degree_le; trivial
+end DegreeLe
+```
 
-* `DegreeEq`: exact degree (*Sensitive*)
-* `DegreeLe`: greedy upper bound on degree
-* `LeadingCoeff`: exact leading coefficients (*Sensitive*)
-* `Coeffs`: exact specification of all coefficients
-* `Eval`: exact specification of evaluations at all points
+`poly_rfl_degree_eq` resolves exact degrees in some simple cases. However, when leading terms cancel, further verifiection is necessary as in the demonstrations that follow this one. `poly_rfl_leading_coeff` for leading coefficients functions similarly.
 
-Non-*Sensitive* inference rules do not depend on leading term cancellations.
-This enables quick verification of an upper bound with `DegreeLe`, for example,
-that is only imperfect when leading terms cancel.
+```
+section DegreeEq
+variable [Semiring R]
+example : (0 : R[X]).degree = ⊥ := by poly_rfl_degree_eq
+end DegreeEq
 
-*Sensitive* inference rules require proof that leading terms do not cancel.
-`infer_instance_trying` treats these problems,
-when represented as equivalent propositions on `LeadingCoeff` instances,
-as typical subgoals and verifies them when they hold.
+section DegreeEqNontrivial
+variable [Semiring R] [Nontrivial R]
+example : (1     : R[X]).degree = 0 := by poly_rfl_degree_eq
+example : (X     : R[X]).degree = 1 := by poly_rfl_degree_eq
+example : (X ^ 2 : R[X]).degree = 2 := by poly_rfl_degree_eq
+end DegreeEqNontrivial
+```
 
-## Representations
+`poly_rfl_degree_eq_tring` resolves exact degrees by applying the additional helper tactic `poly_infer_try` at certain steps to verify that leading terms do not cancel. However, when leading terms do cancel, further verifiection is necessary as in the demonstrations that follow this one. `poly_rfl_leading_coeff_trying` for leading coefficients functions similarly.
 
-We represented evaluations as lambda functions
-and univariate coefficients as dense lists.
-We implemented unboundedly-higher-dimensional dense lists
-for multivariate coefficients,
-in which index `[i,j,...k]` holds the `X^i*Y^j*...Z^k` coefficient.
+```
+section DegreeEqNontrivial
+variable [Semiring R] [Nontrivial R]
+example : (X + 1 : R[X]).degree = 1 := by poly_rfl_degree_eq_trying <:> poly_infer_try
+end DegreeEqNontrivial
+```
 
-## Future Work
+`poly_rfl_degree_eq_of_coeffs` resolves exact degrees by constructing a computable representation---`CoeffsList` in this case---of the entire polynomial. `poly_rfl_leading_coeff_of_coeffs` for leading coefficients, `poly_rfl_coeff` for arbitrary coefficients, and `poly_rfl_eval` for evaluations function similarly.
 
-Future work will improve the efficiency and strength
-of the systems in this project.
-Sparse and array representations of coefficients are priorities.
-Search tactics beyond `infer_instance_trying` will also be explored
-for more complete automation.
+```
+section DegreeEqOfCoeffs
+example : (X + 1 : ℕ[X]).degree = 1 := by poly_rfl_degree_eq_of_coeffs VIA CoeffsList; simp; trivial
+end DegreeEqOfCoeffs
+```
