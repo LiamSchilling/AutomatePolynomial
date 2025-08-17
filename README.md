@@ -53,7 +53,7 @@ example : (X + 1 : R[X]).degree = 1 := by poly_rfl_degree_eq_trying <:> poly_inf
 end DegreeEqNontrivial
 ```
 
-`poly_rfl_degree_eq_of_coeffs` resolves exact degrees by constructing a computable representation---`CoeffsList` in this case---of the entire polynomial. `poly_rfl_leading_coeff_of_coeffs` for leading coefficients, `poly_rfl_coeff` for arbitrary coefficients, and `poly_rfl_eval` for evaluations function similarly.
+`poly_rfl_degree_eq_of_coeffs` resolves exact degrees by constructing a computable representation—`CoeffsList` in this case—of the entire polynomial. `poly_rfl_leading_coeff_of_coeffs` for leading coefficients, `poly_rfl_coeff` for arbitrary coefficients, and `poly_rfl_eval` for evaluations function similarly.
 
 ```
 section DegreeEqOfCoeffs

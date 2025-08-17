@@ -70,7 +70,7 @@ Although the inference procedure is effective for target properties with inferen
 
 \begin{tactic}[\tacticinline{infer\_instance\_trying}]
 \label{tac:infer_instance_trying}
-\lean{synthInstanceTrying, tacticInfer_instance_trying<:>_}
+\lean{synthInstanceTrying, «tacticInfer_instance_trying<:>_»}
 \leanok
 Performs a depth-first search which, at each step, applies a provided helper tactic \tacticinline{t} then checks all instance declarations that match the current goal. Unlike Lean's type-class inference, this procedure supports instance declarations that require assumptions that cannot be resolved by type-class instances, handling them with the helper tactic instead. The syntax is \tacticinline{infer\_instance\_trying}\leaninline{ <:> }\tacticinline{t}.
 \begin{lstlisting}
@@ -125,7 +125,7 @@ Simplifies the expression resulting from the inference procedure so that the com
 
 \begin{tactic}[\tacticinline{poly\_rfl\_with}]
 \label{tac:poly_rfl_with}
-\lean{tacticPoly_rfl_with<:>_}
+\lean{«tacticPoly_rfl_with<:>_»}
 \leanok
 \uses{tac:poly_rfl_rw, tac:poly_rfl_dsimp}
 Frames a reflection tactic \tacticinline{t} with rewriting and last-mile simplification steps from Tactic~\ref{tac:poly_rfl_rw} and Tactic~\ref{tac:poly_rfl_dsimp}. The syntax is \tacticinline{poly\_rfl\_with}\leaninline{ <:> }\tacticinline{t}.
@@ -170,7 +170,7 @@ Since the following tactics deal with properties that depend on whether leading 
 
 \begin{tactic}[\tacticinline{poly\_rfl\_degree\_eq}]
 \label{tac:poly_rfl_degree_eq}
-\lean{tacticPoly_rfl_degree_eq, tacticPoly_rfl_degree_eq_trying<:>_, tacticPoly_rfl_degree_eq_of_coeffsVIA_}
+\lean{tacticPoly_rfl_degree_eq, «tacticPoly_rfl_degree_eq_trying<:>_», tacticPoly_rfl_degree_eq_of_coeffsVIA_}
 \leanok
 \uses{tac:poly_rfl_with}
 Resolves goals of the form $\degree(p) = n$ for univariate polynomials $p$ and some $n$ which is either a natural number or the bottom member $\bot$. In any case where we want $\degree(p) \neq \bot$, we must admit that the the semiring is nontrivial, as in section \leaninline{DegreeEqNontrivial}.
@@ -196,7 +196,7 @@ end DegreeEqOfCoeffs
 
 \begin{tactic}[\tacticinline{poly\_rfl\_leading\_coeff}]
 \label{tac:poly_rfl_leading_coeff}
-\lean{tacticPoly_rfl_leading_coeff, tacticPoly_rfl_leading_coeff_trying<:>_, tacticPoly_rfl_leading_coeff_of_coeffsVIA_}
+\lean{tacticPoly_rfl_leading_coeff, «tacticPoly_rfl_leading_coeff_trying<:>_», tacticPoly_rfl_leading_coeff_of_coeffsVIA_}
 \leanok
 \uses{tac:poly_rfl_with}
 Resolves goals of the form $\leading(p) = c$ for univariate polynomials $p$ and members of the relevant semiring $c$. When the definition of $p$ contains recursive cases such as \leaninline{+}, \leaninline{*}, or \leaninline{\^{}} (disregarding \leaninline{X \^{} n} which is handled separately), we must admit that the semiring is nontrivial, as in section \leaninline{LeadingCoeffNontrivial}.
