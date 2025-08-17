@@ -70,7 +70,7 @@ Although the inference procedure is effective for target properties with inferen
 
 \begin{tactic}[\tacticinline{infer\_instance\_trying}]
 \label{tac:infer_instance_trying}
-\lean{synthInstanceTrying, «tacticInfer_instance_trying<:>_»}
+\lean{Lean.MVarId.synthInstanceTrying, «tacticInfer_instance_trying<:>_»}
 \leanok
 Performs a depth-first search which, at each step, applies a provided helper tactic \tacticinline{t} then checks all instance declarations that match the current goal. Unlike Lean's type-class inference, this procedure supports instance declarations that require assumptions that cannot be resolved by type-class instances, handling them with the helper tactic instead. The syntax is \tacticinline{infer\_instance\_trying}\leaninline{ <:> }\tacticinline{t}.
 \begin{lstlisting}
