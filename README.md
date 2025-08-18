@@ -4,7 +4,7 @@ Polynomials are crucial to cryptographic protocols for their error-checking appl
 
 ## The Blueprint
 
-This document will briefly demonstrate the automation capabilities of the our system's tactics. For a more thorough discussion of previous work, our approach, and how to extend the systems in this project, visit the project's [blueprint](https://liamschilling.github.io/AutomatePolynomial/).
+This document will briefly demonstrate the automation capabilities of the our system's tactics and discuss future directions for the project. For a more thorough discussion of previous work, our approach, and how to extend the systems in this project, visit the project's [blueprint](https://liamschilling.github.io/AutomatePolynomial/).
 
 ## Demonstrations
 
@@ -60,3 +60,31 @@ section DegreeEqOfCoeffs
 example : (X + 1 : ℕ[X]).degree = 1 := by poly_rfl_degree_eq_of_coeffs VIA CoeffsList; simp; trivial
 end DegreeEqOfCoeffs
 ```
+
+## Ongoing Work
+
+The listed tasks outline ongiong work and promising directions for future work, in roughly decreasing order by the scope of the task. We use tags to indicate the types of contributions entailed by each task.
+
+### Tasks
+
+- Multivariate system in branch [feature/mvpoly](https://github.com/LiamSchilling/AutomatePolynomial/tree/feature/mvpoly) - *feature*
+    - Lemmas for `weightedTotalDegree` - *mathlib*
+        - Provide closed form for cases such as `p + q`, `p * q`, and `p ^ n`
+        - Show that `totalDegree` and `degreeOf` are special cases
+- Reflection tactics using `Poly` and its built-in automated construction - *feature, mathlib, docs*
+- Representations in univariate system - *feature, docs*
+    - `CoeffList` as representation for evaluations
+    - `Poly` as representation for coefficients and evaluations
+- TODOs in section [Univariate System](https://liamschilling.github.io/AutomatePolynomial/blueprint/sec-univariate.html) in blueprint - *docs*
+- Rendering of math symbols in [pdf blueprint](https://liamschilling.github.io/AutomatePolynomial/blueprint.pdf) - *fix*
+
+### Tags
+
+Some tags adapted from [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+
+- *feature* - introduces a new feature to the codebase
+- *mathlib* - entails a contribution to Mathlib
+- *docs* - introduces a new unit to the documentation
+- *fix* - patches a bug in the codebase
+- *style* - modifies a sylistic standard of the codebase or associated documents
+- *refactor* - modifies a structural standard of the codebase or associated documents
