@@ -92,7 +92,105 @@ example : IsDouble 4 := by infer_instance_trying <:> decide
 
 \secb{Inference Rules}
 
-TODO
+We define type classes that declare groups of inference rules. These classes may be extended to construct specifications for inference procedures requiring assumptions of varying strenghts (e.g. from nonsensitive to very sensitive). An implementation of an inference procudure must meet its specificaitions by implementing its inference rules.
+
+Because we differentiate between inference rules for bases cases and inference rules for recursive cases of polynomials, inference procedures may be sensitive to varying degrees. To demonstrate:
+
+\begin{itemize}
+\item \textbf{Nonsensitive}: greedy degree upper bound inference is nonsensitive as it never requires additional assumptions beyond the input instances
+\item \textbf{Somewhat sensitive}: leading coefficient inference is sensitive in recursive cases but nonsensitive in base cases
+\item \textbf{Very sensitive}: exact degree inference is sensitive as it always requires additional assumptions beyond the input instances
+\end{itemize}
+
+It should also be emphasized that when we assert that we require some type in the following definitions, we mean that we must be provided a way to compute a member of that type, not just that such a member exists, given the current assumptions as input.
+
+\begin{definition}[Nonsensitive rules for base cases]
+\label{def:BaseReflection}
+\lean{Polynomial.Rfl.BaseReflection}
+\leanok
+Given a semiring $R$ and a property of polynomials $T:R[x] \to \mathtt{Type}$, nonsensitive inference of $T$ for base cases of $R[x]$ requires that we have the following.
+\begin{itemize}
+\item $T(0)$
+\item $T(c)$ for $c \in R$
+\item $T(x)$
+\item $T(x ^ n)$ for $n \in \mathbb{N}$
+\end{itemize}
+The $T(x ^ n)$ case is not strictly necessary here and could have been analyzed as a result of recursive cases. However, $T(x ^ n)$ often has a nice closed form so it is included here for efficiency.
+\end{definition}
+
+\begin{definition}[Nonsensitive rules for recursive cases]
+\label{def:ClosureReflection}
+\lean{Polynomial.Rfl.ClosureReflection}
+\leanok
+Given a semiring $R$ and a property of polynomials $T:R[x] \to \mathtt{Type}$, nonsensitive inference of $T$ for recursive cases of $R[x]$ requires that we have the following.
+\begin{itemize}
+\item $T(p^n)$ given $T(p)$ for $p \in R[x]$ and $n \in \mathbb{N}$
+\item $T(pq)$ given $T(p)$ and $T(q)$ for $p,q \in R[x]$
+\item $T(p+q)$ given $T(p)$ and $T(q)$ for $p,q \in R[x]$
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Sensitive rules for base cases]
+\label{def:SensitiveBaseReflection}
+\lean{Polynomial.Rfl.SensitiveBaseReflection}
+\leanok
+Given a semiring $R$ and a property of polynomials $T:R[x] \to \mathtt{Type}$, sensitive inference of $T$ for base cases of $R[x]$ requires that we have the following.
+\begin{itemize}
+\item $T(0)$
+\item $T(c)$ for $c \in R \setminus \{0\}$
+\item $T(x)$ when $R$ is nontrivial
+\item and $T(x ^ n)$ for $n \in \mathbb{N}$ when $R$ is nontrivial
+\end{itemize}
+The $T(x ^ n)$ case is not strictly necessary here and could have been analyzed as a result of recursive cases. However, $T(x ^ n)$ often has a nice closed form so so it is included here for efficiency.
+\end{definition}
+
+\begin{definition}[Sensitive rules for recursive cases]
+\label{def:SensitiveClosureReflection}
+\lean{Polynomial.Rfl.SensitiveClosureReflection}
+\leanok
+Given a semiring $R$ and a property of polynomials $T:R[x] \to \mathtt{Type}$, sensitive inference of $T$ for recursive cases of $R[x]$ requires that we have the following.
+\begin{itemize}
+\item $T(p^n)$ given $T(p)$ for $p \in R[x]$ and $n \in \mathbb{N}$ when $\leading(p^n) \neq 0$
+\item $T(pq)$ given $T(p)$ and $T(q)$ for $p,q \in R[x]$ when $\leading(p)\leading(q) \neq 0$
+\item $T(p+q)$ given $T(p)$ for $p,q \in R[x]$ when $\degree(p) > \degree(q)$
+\item $T(p+q)$ given $T(q)$ for $p,q \in R[x]$ when $\degree(p) < \degree(q)$
+\item $T(p+q)$ given $T(p)$ and $T(q)$ for $p,q \in R[x]$ when $\degree(p) = \degree(q)$ and $\leading(p) + \leading(q) \neq 0$
+\end{itemize}
+\end{definition}
+
+Many useful representations have a simplified or normal form when different members of that representation are equivalent up to the target property. For instance, lists of polynomial coefficients are equivalent up to trailing zeros and can typically be simplified to an equivalent normal form with no trailing zeros. In this case, degrees and leading coefficients are easily computed from a normal form, which is reflected in Definition~\ref{def:NormalizerReflection}.
+
+\begin{definition}[Type with a normal form]
+\label{def:Normalizer}
+\lean{Normalizer}
+\leanok
+We say that a type $t$ has a normal form if there is a set $N \subseteq \{m:t\}$ and an idempotent function $f:t \to N$. Let $m : t$. $m$ is called \emph{normal} if $m \in N$. $f(m)$ is called the \emph{normalization} of $m$.
+\end{definition}
+
+\begin{definition}[Rules for representations with a normal form]
+\label{def:NormalizerReflection}
+\lean{Polynomial.Rfl.NormalizerReflection}
+\leanok
+\uses{def:Normalizer}
+Given a semiring $R$ and a property of polynomials $T:R[x] \to \mathtt{Type}$, inference of $T$ for representations with a normal form requires that we have the following when equality in $R$ is decidable.
+\begin{itemize}
+\item a normal form for $T(p)$ for $p \in R[x]$
+\item \leaninline{DegreeEq}$(p)$ given a normal $T(p)$ for $p \in R[x]$
+\item \leaninline{LeadingCoeff}$(p)$ given a normal $T(p)$ for $p \in R[x]$
+\end{itemize}
+\end{definition}
+
+It is also often useful to rewrite a polynomial in a standard form defined by the representation, such as with expanded and ordered terms for example.
+
+\begin{definition}[Rules for representations that support rewriting in a standard form]
+\label{def:FormReflection}
+\lean{Polynomial.Rfl.FormReflection}
+\leanok
+Given a semiring $R[x]$ and a property of polynomials $T:R[x] \to \mathtt{Type}$, inference of $T$ for representations that support rewriting to a standard form requires the following.
+\begin{itemize}
+\item $q \in R[x]$ given $T(p)$ for $p \in R[x]$ such that $q = p$
+\end{itemize}
+\end{definition}
 
 \secb{Reflection Classes}
 
@@ -120,6 +218,7 @@ Performs trivial rewrites to transform polynomials into the form expected by the
 \label{tac:poly_rfl_dsimp}
 \lean{tacticPoly_rfl_dsimp}
 \leanok
+\uses{def:NormalizerReflection, def:FormReflection}
 Simplifies the expression resulting from the inference procedure so that the computable representation is visible. This consists primarily of unfolding reflection class instances into the values they contain.
 \end{tactic}
 
@@ -262,7 +361,7 @@ end Eval
 \label{tac:poly_rfl_expand}
 \lean{tacticPoly_rfl_expandVIA_}
 \leanok
-\uses{tac:poly_rfl_with}
+\uses{tac:poly_rfl_with, def:FormReflection}
 Resolves goals of the form $p = q$ for a univariate polynomial $p$ and an equivalent polynomial $q$ in expanded form. Note that we admit that the semiring is commutative.
 \begin{lstlisting}
 section Expand
