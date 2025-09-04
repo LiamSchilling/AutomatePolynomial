@@ -18,6 +18,4 @@ lean_exe «automate-polynomial» where
   supportInterpreter := true
 
 require "PatrickMassot" / "checkdecls"
-
-meta if get_config? env = some "dev" then
-require "leanprover" / "doc-gen4"
+require "leanprover" / "doc-gen4" @ "git#58b48e75bd19f785927e06912dea610e5e48f1fa"
