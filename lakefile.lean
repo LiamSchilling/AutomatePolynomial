@@ -4,8 +4,7 @@ open Lake DSL
 package «automate-polynomial» where
   -- add package configuration options here
 
-require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git"
+require "leanprover-community" / "mathlib" @ "git#79e94a093aff4a60fb1b1f92d9681e407124c2ca"
 
 lean_lib «AutomatePolynomial» where
   -- add library configuration options here
@@ -18,8 +17,7 @@ lean_exe «automate-polynomial» where
   -- Remove this line if you do not need such functionality.
   supportInterpreter := true
 
-require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
+require "PatrickMassot" / "checkdecls"
 
 meta if get_config? env = some "dev" then
-require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4" @ "main"
+require "leanprover" / "doc-gen4"

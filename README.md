@@ -86,5 +86,6 @@ Some tags adapted from [Conventional Commits](https://www.conventionalcommits.or
 - *mathlib* - entails a contribution to Mathlib
 - *docs* - introduces a new unit to the documentation
 - *fix* - patches a bug in the codebase
+- *build* - affects the build system or dependencies
 - *style* - modifies a sylistic standard of the codebase or associated documents
 - *refactor* - modifies a structural standard of the codebase or associated documents
